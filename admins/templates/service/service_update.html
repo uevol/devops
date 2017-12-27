@@ -1,0 +1,88 @@
+{% extends 'ifram.html' %}
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>系统设置</a>
+        <a href= {% url 'admins:ServiceList' %}><cite>服务管理</cite></a>
+        <a>更新配置</a>
+        <a href= {% url 'admins:ServiceUpdate' service.id %}><cite>{{service.name}}</cite></a>
+    </span>
+</blockquote>
+<hr>
+<form class="layui-form" action='' method="">{% csrf_token %}
+    <div class="layui-form-item">
+        <label class="layui-form-label">服务 <span style="color: #FF5722">*</span></label>
+        <div class="layui-input-inline">
+        <input type="text" value="{{service.name}}" lay-verify="required" placeholder="请输入角色" autocomplete="off" class="layui-input" disabled>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">通信主机 <span style="color: #FF5722">*</span></label>
+        <div class="layui-input-inline">
+        <input type="text" name="host" value="{{service.host}}" lay-verify="required" placeholder="请输入IP或主机名" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">端口 <span style="color: #FF5722">*</span></label>
+        <div class="layui-input-inline">
+        <input type="text" name="port" value="{{service.port}}" lay-verify="required" placeholder="请输入端口号" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">路径</label>
+        <div class="layui-input-inline">
+        <input type="text" name="path" value="{{service.path}}" placeholder="请输入路径" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户</label>
+        <div class="layui-input-inline">
+        <input type="text" name="user" value="{{service.user}}" placeholder="请输入服务用户" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户密码</label>
+        <div class="layui-input-inline">
+        <input type="password" name="password" value="{{service.password}}" placeholder="请输入服务用户密码" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+        <textarea name="comment" class="layui-textarea">{{service.comment}}</textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+        <button class="layui-btn" lay-submit="" lay-filter="demo1">提交更新</button>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
+
+{% endblock content %}
+
+{% block script %}
+<script>
+    var form = layui.form;
+    form.on('submit(demo1)', function(data){
+        var $ = layui.$;
+        var index = layer.load(1);
+        $.post("{% url 'admins:ServiceUpdate' service.id %}", data.field, function(res){
+            if (res.code){
+                layer.msg(res.msg, {icon: 1});
+                setTimeout("window.location.href= \"{% url 'admins:ServiceList' %}\"", 2000);
+            }
+            else {
+                layer.alert('错误信息:'+ res.msg);
+            }
+            layer.close(index);
+        });
+        return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+    });
+</script>
+{% endblock script %}
+

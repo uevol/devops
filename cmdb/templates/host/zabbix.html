@@ -1,0 +1,218 @@
+{% extends 'ifram.html' %}
+{% load staticfiles %}
+
+
+{% block content %}
+<script src="{%static 'js/echarts.js' %}"></script>
+<div class="layui-col-xs12 layui-col-sm12 layui-col-md12">
+        <form class="layui-form" method="post" action="{% url 'cmdb:zabbix' ip %}" id='zabbix'>{% csrf_token %}
+            <div class="layui-col-xs6 layui-col-sm6 layui-col-md6">
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">时间范围</label>
+                        <div class="layui-input-inline" style="width: 150px;">
+                            <input type="text" name="dt_from" id="dt_from" placeholder="yyyy-MM-dd HH:mm:ss" value="{{dt_from}}" autocomplete="off" class="layui-input" required>
+                        </div>
+                        <div class="layui-form-mid">-</div>
+                        <div class="layui-input-inline" style="width: 150px;">
+                            <input type="text" name="dt_till" id="dt_till" placeholder="yyyy-MM-dd HH:mm:ss" value="{{dt_till}}" autocomplete="off" class="layui-input" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="layui-col-xs6 layui-col-sm6 layui-col-md6">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">指标类型</label>
+                    <div class="layui-input-block">
+                        <select name="graph" lay-filter="graphs">
+                                {% for name, graphid in graphs.items %}
+                                    {% if name == graph_selected %}
+                                    <option value="{{ name }}" selected>{{ name }}</option>
+                                    {% else %}
+                                    <option value="{{ name }}">{{ name }}</option>
+                                    {% endif %}
+                                {% endfor %}}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <br>
+    <div id="main" style="height:300px;"></div>
+    <div hidden="hidden" id='data'>{{context}}</div>
+
+{% endblock content %}
+
+{% block script %}
+<script>
+
+    var $ = layui.$;
+
+    // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('main'));
+    
+    myChart.showLoading();
+
+    // 获取初始数据
+    var context = JSON.parse($("#data").html());
+    var data = series(context.data);
+
+    myChart.hideLoading();
+
+    function series(data) {
+        var arr = [];
+        for (x in data)
+        {
+            arr.push({name:data[x].name,type:'line',data:data[x].value});  
+        }
+        
+        
+        return arr;
+    }
+
+    // 指定图表的配置项和数据
+    var option = {
+            // title: {
+            //     text: '动态数据 + 时间坐标轴'
+            // },
+            tooltip: {
+                trigger: 'axis',
+                // formatter: function (params) {
+                //     params = params[0];
+                //     var date = new Date(params.name);
+                //     return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + ' : ' + params.value[1];
+                // },
+                axisPointer: {
+                    animation: false
+                }
+            },
+            dataZoom: [
+                {
+                    type: 'slider',
+                    show: true,
+                    xAxisIndex: [0],
+                    start: 75,
+                    end: 100
+                },
+                {
+                    type: 'inside',
+                    xAxisIndex: [0],
+                    start: 75,
+                    end: 100
+                }
+            ],
+            toolbox: {
+                show: true,
+                orient: 'vertical',
+                top: '33%',
+                right: "4%",
+                feature: {
+                    dataZoom: {
+                        yAxisIndex: 'none'
+                    },
+                    dataView: {readOnly: false},
+                    // magicType: {type: ['line', 'bar']},
+                    restore: {},
+                    saveAsImage: {}
+                }
+            },
+            legend: {
+                data: context.legend
+            },
+            xAxis: {
+                type: 'time',
+                splitLine: {
+                    show: true
+                }
+            },
+            yAxis: {
+                type: 'value',
+                boundaryGap: [0, '100%'],
+                splitLine: {
+                    show: true
+                }
+            },
+            series: data
+        };
+
+    
+
+    // 使用刚指定的配置项和数据显示图表。
+    myChart.setOption(option);
+
+
+    function startTime(){
+        var today=new Date();
+        var year =today.getFullYear();
+        var month= today.getMonth()+1;
+        var date=today.getDate();
+        var h=today.getHours();
+        var m=today.getMinutes();
+        var s=today.getSeconds();// 在小于10的数字前加一个‘0’
+        m=checkTime(m);
+        s=checkTime(s);
+        return year+"-"+month+"-"+date+" "+h+":"+m+":"+s;
+    }
+    function checkTime(i){
+        if (i<10){
+            i="0" + i;
+        }
+        return i;
+    }
+
+    // 定时刷新
+    var csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();
+    setInterval(function () {
+        $.post("{% url 'cmdb:zabbix_refresh' %}",{"interval":120,"graph":"{{graph_selected}}","ip":"{{ip}}", 'csrfmiddlewaretoken': csrfmiddlewaretoken},function (result) {
+                obj = JSON.parse(result);
+                for (x in data)
+                {
+                    if (data[x].data.slice(-1)[0][0]!=obj.data[x][0]){
+                        data[x].data.shift();
+                        // data[x].data.push([startTime(), Math.random()]);
+                        data[x].data.push(obj.data[x]); 
+                    }
+                }
+                myChart.setOption({series: data});
+        })
+    }, 2000);
+
+    //日期时间范围
+    var laydate = layui.laydate;
+    laydate.render({
+        elem: '#dt_from'
+        ,type: 'datetime'
+        ,change: function(value, date, endDate){
+            //console.log(value); //得到日期生成的值，如：2017-08-18
+            //console.log(date); //得到日期时间对象：{year: 2017, month: 8, date: 18, hours: 0, minutes: 0, seconds: 0}
+            //console.log(endDate); //得结束的日期时间对象，开启范围选择（range: true）才会返回。对象成员同上。
+            $("#dt_from").val(value);
+            $("#zabbix").submit();
+          }
+    });
+    laydate.render({
+        elem: '#dt_till'
+        ,type: 'datetime'
+        ,change: function(value, date, endDate){
+            $("#dt_till").val(value);
+            $("#zabbix").submit();
+          }
+    });
+
+    var form = layui.form;
+    form.render();
+    form.on('select(graphs)', function(data){
+        //console.log(data.elem); //得到select原始DOM对象
+        //console.log(data.value); //得到被选中的值
+        //console.log(data.othis); //得到美化后的DOM对象
+        $("#zabbix").submit();
+    });      
+        
+</script>
+
+        
+{% endblock script %}
+    
+

@@ -1,0 +1,58 @@
+{% extends 'ifram.html' %}
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>系统设置</a>
+        <a href= {% url 'admins:ServiceList' %}><cite>服务管理</cite></a>
+    </span>
+</blockquote>
+<hr>
+<div class="layui-form">
+        <table class="layui-table">
+          <colgroup>
+            <col width="150">
+            <col>
+            <col>
+            <col>
+            <col>
+            <col>
+            <col width="80">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>服务</th>
+              <th>通信主机</th>
+              <th>端口</th>
+              <th>路径</th>
+              <th>用户</th>
+              <th>备注</th>
+              <th>操作</th>
+            </tr> 
+          </thead>
+          <tbody>
+          {% for service in services  %}
+            <tr id="{{service.id}}">
+              <td>{{service.name | default_if_none:""}}</td>
+              <td>{{service.host | default_if_none:""}}</td>
+              <td>{{service.port | default_if_none:""}}</td>
+              <td>{{service.path | default_if_none:""}}</td>
+              <td>{{service.user | default_if_none:""}}</td>
+              <td>{{service.comment | default_if_none:""}}</td>
+              <td>
+                    <a href="{% url 'admins:ServiceUpdate' service.id %}">
+                        <button class="layui-btn layui-btn-xs">编辑</i></button>
+                    </a>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+{% endblock content %}
+
+{% block script %}
+        
+{% endblock script %}

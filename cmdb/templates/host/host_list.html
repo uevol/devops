@@ -1,0 +1,173 @@
+{% extends 'ifram.html' %}
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>资产管理</a>
+        <a href= {% url 'cmdb:HostList' %}><cite>主机列表</cite></a>
+    </span>
+</blockquote>
+
+<div class="layui-inline">
+    <div class="layui-input-inline">
+        <input type="text" id="keyword" name="keyword" placeholder="根据主机名、IP搜索" autocomplete="off" class="layui-input" style="width: 192px">
+    </div>
+</div>
+
+<button class="layui-btn" id="show_form">高级搜索</button>
+<a href="{% url 'cmdb:HostAdd' %}"><button class="layui-btn">添加主机</button></a>
+{% comment %} <a href="#"><button class="layui-btn">更多操作</button></a> {% endcomment %}
+<a href="{% url 'cmdb:setTable' %}">
+    <button class="layui-btn layui-btn-primary hover" style="float:right; padding: 0px 7px;" id="setting"><i class="layui-icon">&#xe614;</i></button>
+</a>
+<hr>
+<form class="layui-form" action='' method="" style="display: none" id="search_form">  
+    <div class="layui-row">
+        {% for item in items %}
+            {% if item.optional_value %}
+            <div class="layui-col-xs6" style="margin-bottom: 5px">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">{{item.name}}</label>
+                    <div class="layui-input-inline">
+                            <select name="{{item.code}}-{{item.value_type}}">
+                                    <option value=""></option>
+                                    {% for value in item.get_optional_value  %}
+                                        <option value="{{value}}">{{value}}</option>
+                                    {% endfor %}
+                            </select>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+                <div class="layui-col-xs6" style="margin-bottom: 5px">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">{{item.name}}</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" name="{{item.code}}-{{item.value_type}}">
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+        {% endfor %}
+    </div>
+
+    <div class="layui-row">
+        <button class="layui-btn" lay-submit="" lay-filter="demo1">搜索</button>
+        <button type="reset" class="layui-btn layui-btn-primary" id="hidden_form">取消</button>
+    </div>
+</form>
+
+
+<table class="layui-table" lay-data="{url:'/cmdb/host/listAPI/', page:true, id:'idTest'}" lay-filter="demo">
+    <thead>
+      <tr>
+        <th lay-data="{type:'checkbox', fixed: 'left'}"></th>
+        {% for item in category.ciproperty_set.all %}
+            
+            {% if item.show_in_table %}
+                <th lay-data="{field: '{{item.code}}', minWidth:180}">{{item.name}}</th>
+            {% endif %}
+                        
+        {% endfor %}
+        <th lay-data="{fixed: 'right', width:160, align:'center', toolbar: '#barDemo'}">操作</th>
+
+      </tr>
+    </thead>
+</table>
+
+{% endblock content %}
+
+{% block script %}
+
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs" lay-event="view">查看</a>
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del">删除</a>
+</script>
+
+<script>
+    var table = layui.table;
+
+    table.on('checkbox(demo)', function(obj){
+        console.log(obj)
+        });
+
+    //监听工具条
+    table.on('tool(demo)', function(obj){
+        var data = obj.data;
+        console.log(data);
+        if(obj.event === 'del'){
+            layer.confirm('确定删除？', function(index){
+                $.get('/cmdb/host/delete/' + data.server_id, function(res){
+                    if (res.code) {
+                        obj.del();
+                        layer.msg(res.msg, {icon: 1});
+                    }
+                    else {
+                        layer.alert('错误信息:'+ res.msg);
+                    }
+                });
+                layer.close(index);
+            });
+        } else if(obj.event === 'view'){
+            window.location.href = '/cmdb/host/detail/' + data.server_id;
+        } else if(obj.event === 'edit'){
+            window.location.href = '/cmdb/host/update/' + data.server_id;
+        }
+    });
+
+    var $ = layui.$, active = {
+            reload: function(){
+                var keyword = $('#keyword');
+            
+                //执行重载
+                table.reload('idTest', {
+                    url: '/cmdb/host/listAPI',
+                    where: {
+                    "keyword": keyword.val()
+                    }
+                });
+            }
+        };
+
+    $('#keyword').bind('keydown', function(event){
+        if (event.keyCode == '13'){
+            active['reload'].call(this);
+        }
+    });
+
+    var layer = layui.layer;
+    var tipsi;
+    $(".hover").hover(function(){
+       tipsi = layer.tips('列表设置',this,{time:0});
+     },function(){
+          layer.close(tipsi);
+     });
+
+     $('#show_form').click(function(){
+        document.getElementById("search_form").style.display="inline";
+     });
+
+     $('#hidden_form').click(function(){
+        document.getElementById("search_form").style.display="none";
+     });
+
+     var form = layui.form;
+     form.on('submit(demo1)', function(data){
+        // console.log(data.field) //当前容器的全部表单字段，名值对形式：{name: value}
+
+        //执行重载
+        table.reload('idTest', {
+            url: '/cmdb/host/listAPI',
+            where: data.field
+        });
+        return false;
+     });
+
+</script>
+        
+{% endblock script %}
+    
+

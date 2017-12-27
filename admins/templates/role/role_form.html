@@ -1,0 +1,63 @@
+{% extends 'ifram.html' %}
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>权限管理</a>
+        <a href= {% url 'admins:RoleList' %}><cite>角色管理</cite></a>
+        <a>新建角色</a>
+    </span>
+</blockquote>
+<hr>
+<form class="layui-form" action='' method="">{% csrf_token %}
+    <div class="layui-form-item">
+        <label class="layui-form-label">角色 <span style="color: #FF5722">*</span></label>
+        <div class="layui-input-inline">
+        <input type="text" name="name" lay-verify="required" placeholder="请输入角色名,不能重复" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item" pane="">
+        <label class="layui-form-label">用户</label>
+        <div class="layui-input-block">
+            {% for user in users %}
+                <input type="checkbox" name="users" value={{user.id}} lay-skin="primary" title={{user.username}}>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+        <button class="layui-btn" lay-submit="" lay-filter="demo1">立即提交</button>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
+
+{% endblock content %}
+
+{% block script %}
+<script>
+    var form = layui.form;
+    form.on('submit(demo1)', function(data){
+        var $ = layui.$;
+        // get list of user
+        data.field['users'] = $("input[name='users']:checkbox:checked").map(function(){return $(this).val();}).get()
+        
+        data.field['csrfmiddlewaretoken'] = $("input[name='csrfmiddlewaretoken']").val();
+        var index = layer.load(1);
+        $.post("{% url 'admins:RoleCreate' %}", data.field, function(res){
+            if (res.code){
+                layer.msg(res.msg, {icon: 1});
+            }
+            else {
+                layer.alert('错误信息:'+ res.msg);
+            }
+            layer.close(index);
+        });
+        return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+    });
+</script>
+{% endblock script %}
+

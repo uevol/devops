@@ -1,0 +1,157 @@
+{% extends 'ifram.html' %}
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>资产管理</a>
+        <a href= {% url 'cmdb:CategoryList' %}><cite>资源模型</cite></a>
+        <a href= {% url 'cmdb:CategoryDetail' category.id %}><cite>{{category.name}}</cite></a>
+    </span>
+</blockquote>
+
+<a href= {% url 'cmdb:CategoryUpdate' category.id %}><button class="layui-btn">编辑</button></a>
+<a href= {% url 'cmdb:PropertyCreate' category.id %}><button class="layui-btn">添加属性</button></a>
+<a href="{{ category.get_url }}"><button class="layui-btn">实例列表</button></a>
+{% if category.is_must  %}
+<button class="layui-btn layui-btn-disabled hover">删除</button>
+{% else %}
+<button class="layui-btn layui-btn-danger" id="delete_category">删除</button>
+{% endif %}
+<hr>
+
+<div class="layui-container">  
+    <div class="layui-row">
+        <div class="layui-col-xs6 layui-col-sm6 layui-col-md4">
+        模型名称：{{category.name}}
+        </div>
+        <div class="layui-col-xs6 layui-col-sm6 layui-col-md4">
+        模型ID：{{category.code}}
+        </div>
+        <div class="layui-col-xs6 layui-col-sm6 layui-col-md4">
+        显示在左侧菜单：
+            {% if category.show_in_left %}
+            <input type="checkbox" checked="" value="1" name="show_in_left" lay-skin="switch" lay-filter="switchTest" lay-text="显示|不显示" disabled>
+            {% else %}
+            <input type="checkbox" value="1" name="show_in_left" lay-skin="switch" lay-filter="switchTest" lay-text="显示|不显示" disabled>
+            {% endif %}
+        </div>
+    </div>
+    <br>
+    <div class="layui-row">
+        <div class="layui-col-xs12 layui-col-sm12 layui-col-md12">
+        备注说明：{{category.comment | default_if_none:""}}
+        </div>
+    </div>
+</div>
+
+<div class="layui-form">
+        <table class="layui-table">
+          <colgroup>
+            <col width="150">
+            <col width="150">
+            <col width="80">
+            <col width="80">
+            <col width="60">
+            <col width="60">
+            <col>
+            <col width="110">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>属性ID</th>
+              <th>名称</th>
+              <th>值类型</th>
+              <th>必填或可选</th>
+              <th>是否显示</th>
+              <th>是否参与搜索</th>
+              <th>枚举值</th>
+              <th>操作</th>
+            </tr> 
+          </thead>
+          <tbody>
+          {% for item in category.ciproperty_set.all  %}
+            <tr>
+              <td>{{item.code}}</td>
+              <td>{{item.name}}</td>
+              <td>{{item.get_value_type_display}}</td>
+              <td>{{item.get_form_type_display}}</td>
+              <td>{{item.show_in_table}}</td>
+              <td>{{item.is_search}}</td>
+              <td>{{item.optional_value  | default_if_none:""}}</td>
+              <td>
+                  <a href= {% url 'cmdb:PropertyUpdate' item.id %}><button class="layui-btn layui-btn-xs">编辑</button></a>
+                  {% if item.is_must %}
+                  <button class="layui-btn layui-btn-xs layui-btn-disabled hover">删除</button>
+                  {% else %}
+                  <button class="layui-btn layui-btn-xs layui-btn-danger" onclick="delete_property('{{item.id}}')">删除</button>
+                  {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+{% endblock content %}
+
+{% block script %}
+<script>
+    var $ = layui.$;
+    var form = layui.form;
+    form.on('submit(demo1)', function(data){
+        
+        var index = layer.load(1);
+        $.post("{% url 'cmdb:CategoryCreate' %}", data.field, function(res){
+            if (res.code){
+                layer.msg(res.msg, {icon: 1});
+            }
+            else {
+                layer.alert('错误信息:'+ res.msg);
+            }
+            layer.close(index);
+        });
+        return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+    });
+
+    
+    var layer = layui.layer;
+    var tipsi;
+    $(".hover").hover(function(){
+       tipsi = layer.tips('系统资源,不能删除',this,{time:0});
+     },function(){
+          layer.close(tipsi);
+     });
+
+     $("#delete_category").click(function(){
+        layer.confirm('确定删除？', function(index){
+            $.get("{%url 'cmdb:CategoryDelete' category.id %}", function(res){
+                if (res.code) {
+                    layer.msg(res.msg, {icon: 1});
+                    setTimeout("window.location.href= \"{% url 'cmdb:CategoryList' %}\"", 2000);
+                }
+                else {
+                    layer.alert('错误信息:'+ res.msg);
+                }
+            });
+            layer.close(index);
+        });
+     });
+
+     function delete_property(id) {
+        layer.confirm('确定删除？', function(index){
+            $.get("/cmdb/ci_property/"+id+"/delete/", function(res){
+                if (res.code) {
+                    layer.msg(res.msg, {icon: 1});
+                    setTimeout("window.location.href= \"{% url 'cmdb:CategoryDetail' category.id %}\"", 2000);
+                }
+                else {
+                    layer.alert('错误信息:'+ res.msg);
+                }
+            });
+            layer.close(index);
+        });
+     }
+</script>
+{% endblock script %}
+

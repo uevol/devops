@@ -1,0 +1,145 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>select host</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="{% static 'layui/css/layui.css' %}" media="all">
+  {% block css %} 
+  
+  {% endblock css %}
+</head>
+<body>
+<div class="layui-layout-body" style="margin: 5px">
+        <div class="layui-inline">
+            <div class="layui-input-inline">
+                <input type="text" id="keyword" name="keyword" placeholder="根据主机名、IP搜索" autocomplete="off" class="layui-input" style="width: 192px">
+            </div>
+        </div>
+            
+        <button class="layui-btn" id="show_form">高级搜索</button>
+        <button class="layui-btn" id="transmit">确定选中</button>
+    
+        <hr>
+        <form class="layui-form" action='' method="" style="display: none" id="search_form">  
+            <div class="layui-row">
+                {% for item in items %}
+                    {% if item.optional_value %}
+                    <div class="layui-col-xs6" style="margin-bottom: 5px">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">{{item.name}}</label>
+                            <div class="layui-input-inline">
+                                    <select name="{{item.code}}-{{item.value_type}}">
+                                            <option value=""></option>
+                                            {% for value in item.get_optional_value  %}
+                                                <option value="{{value}}">{{value}}</option>
+                                            {% endfor %}
+                                    </select>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                        <div class="layui-col-xs6" style="margin-bottom: 5px">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">{{item.name}}</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" class="layui-input" name="{{item.code}}-{{item.value_type}}">
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                {% endfor %}
+            </div>
+    
+            <div class="layui-row">
+                <button class="layui-btn" lay-submit="" lay-filter="demo1">搜索</button>
+                <button type="reset" class="layui-btn layui-btn-primary" id="hidden_form">取消</button>
+            </div>
+        </form>
+    
+        <table class="layui-table" lay-data="{url:'/cmdb/host/listAPI/', page:true, id:'idTest'}" lay-filter="demo">
+            <thead>
+            <tr>
+                <th lay-data="{type:'checkbox', fixed: 'left'}"></th>
+                {% for item in category.ciproperty_set.all %}
+                    
+                    {% if item.show_in_table %}
+                        <th lay-data="{field: '{{item.code}}', minWidth:180}">{{item.name}}</th>
+                    {% endif %}
+                                
+                {% endfor %}
+            </tr>
+            </thead>
+        </table>
+                    
+        <script src="{% static 'layui/layui.all.js' %}"></script>
+    
+        <script>
+            var table = layui.table;
+            var layer = layui.layer;
+            table.on('checkbox(demo)', function(obj){
+                //console.log(obj)
+            });
+
+            var $ = layui.$, active = {
+                    reload: function(){
+                        var keyword = $('#keyword');
+                    
+                        //执行重载
+                        table.reload('idTest', {
+                            url: '/cmdb/host/listAPI',
+                            where: {
+                            "keyword": keyword.val()
+                            }
+                        });
+                    }
+                };
+    
+            $('#keyword').bind('keydown', function(event){
+                if (event.keyCode == '13'){
+                    active['reload'].call(this);
+                }
+            });
+    
+            $('#show_form').click(function(){
+                document.getElementById("search_form").style.display="inline";
+            });
+    
+            $('#hidden_form').click(function(){
+                document.getElementById("search_form").style.display="none";
+            });
+    
+            var form = layui.form;
+            form.on('submit(demo1)', function(data){
+                // console.log(data.field) //当前容器的全部表单字段，名值对形式：{name: value}
+    
+                //执行重载
+                table.reload('idTest', {
+                    url: '/cmdb/host/listAPI',
+                    where: data.field
+                });
+                return false;
+            });
+
+            $(document).on('click', '#transmit', function(){
+                var checkStatus = table.checkStatus('idTest'); //test即为基础参数id对应的值
+                //console.log(checkStatus.data); //获取选中行的数据
+                var ids = []
+                for ( x in checkStatus.data ){
+                    //console.log(data);
+                    ids.push(checkStatus.data[x].minion_id);
+                }
+                //console.log(ids);
+                //console.log(parent);
+                parent.$('#hosts').val(ids);
+                parent.layer.closeAll();
+              })
+        </script> 
+
+</div>      
+</body>
+</html>

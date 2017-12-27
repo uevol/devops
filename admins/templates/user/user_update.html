@@ -1,0 +1,136 @@
+{% extends 'ifram.html' %}
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>账户管理</a>
+        <a href= {% url 'admins:UserList' %}><cite>用户管理</cite></a>
+        <a>更新用户</a>
+        <a href= {% url 'admins:UserUpdate' user.id %}><cite>{{user.username}}</cite></a>
+    </span>
+</blockquote>
+<hr>
+<form class="layui-form" action='' method="">{% csrf_token %}
+        <div class="layui-form-item">
+          <label class="layui-form-label">用户名 <span style="color: #FF5722">*</span></label>
+          <div class="layui-input-inline">
+            <input type="text" name="username" lay-verify="required" placeholder="请输入用户名" value="{{user.username}}" autocomplete="off" class="layui-input">
+          </div>
+        </div>
+    
+        <div class="layui-form-item">
+          <div class="layui-inline">
+            <label class="layui-form-label">邮箱 <span style="color: #FF5722">*</span></label>
+            <div class="layui-input-inline">
+              <input type="text" name="email" lay-verify="required|email" placeholder="请输入邮箱" value="{{user.email}}" autocomplete="off" class="layui-input">
+            </div>
+          </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态 </label>
+            <div class="layui-input-block">
+                {% if user.is_active %}
+                <input type="checkbox" checked="" name="is_active" value="1" lay-skin="switch" lay-text="激活|禁用">
+                {% else %}
+                <input type="checkbox" name="is_active" value="1" lay-skin="switch" lay-text="激活|禁用">
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="layui-form-item" pane="">
+            <label class="layui-form-label">角色 <span style="color: #FF5722">*</span></label>
+            <div class="layui-input-block">
+                {% for role in roles %}
+                    {% if role in user.role_set.all %}
+                    <input type="checkbox" name="roles" value={{role.id}} lay-skin="primary" title={{role.name}} checked=''>
+                    {% else %}
+                    <input type="checkbox" name="roles" value={{role.id}} lay-skin="primary" title={{role.name}}>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="layui-form-item" pane="">
+            <label class="layui-form-label">用户组 <span style="color: #FF5722">*</span></label>
+            <div class="layui-input-block">
+                {% for group in groups %}
+                    {% if group in user.groups.all %}
+                    <input type="checkbox" name="groups" value={{group.id}} lay-skin="primary" title={{group.name}} checked=''>
+                    {% else %}
+                    <input type="checkbox" name="groups" value={{group.id}} lay-skin="primary" title={{group.name}}>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">电话 </label>
+                <div class="layui-input-inline">
+                <input type="text" name="phone" lay-verify="phone" placeholder="请输入电话" value="{{user.profile.phone}}" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">微信 </label>
+                <div class="layui-input-inline">
+                <input type="text" name="wechat" placeholder="请输入微信" value="{{user.profile.wechat}}" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="layui-form-item layui-form-text">
+          <label class="layui-form-label">备注</label>
+          <div class="layui-input-block">
+            <textarea name="comment" placeholder="请输入内容" class="layui-textarea">{{user.profile.comment}}</textarea>
+          </div>
+        </div>
+    
+        <div class="layui-form-item">
+          <div class="layui-input-block">
+            <button class="layui-btn" lay-submit="" lay-filter="demo1">提交更新</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+          </div>
+        </div>
+      </form>
+
+{% endblock content %}
+
+{% block script %}
+<script>
+    var form = layui.form;
+    form.on('submit(demo1)', function(data){
+        //console.log(data.elem) //被执行事件的元素DOM对象，一般为button对象
+        //console.log(data.form) //被执行提交的form对象，一般在存在form标签时才会返回
+        //console.log(data.field) //当前容器的全部表单字段，名值对形式：{name: value}
+        var $ = layui.$;
+
+        // get list of roles
+        data.field['roles'] = $("input[name='roles']:checkbox:checked").map(function(){return $(this).val();}).get()
+
+        // get list of groups
+        data.field['groups'] = $("input[name='groups']:checkbox:checked").map(function(){return $(this).val();}).get()
+
+        // csrf_token for django
+        data.field['csrfmiddlewaretoken'] = $("input[name='csrfmiddlewaretoken']").val();
+
+        // post for update
+        var index = layer.load(1);
+        $.post("{% url 'admins:UserUpdate' user.id %}", data.field, function(res){
+            if (res.code){
+                layer.msg(res.msg, {icon: 1});
+            }
+            else {
+                layer.alert('错误信息:'+ res.msg);
+            }
+            layer.close(index);
+        });
+        return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+    });
+</script>
+{% endblock script %}
+

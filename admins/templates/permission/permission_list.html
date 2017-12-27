@@ -1,0 +1,90 @@
+{% extends 'ifram.html' %}
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>权限管理</a>
+        <a href= {% url 'admins:PermList' %}><cite>权限列表</cite></a>
+    </span>
+</blockquote>
+
+<form class="layui-form layui-inline" action="">
+    <div class="layui-inline">
+        <div class="layui-input-inline">
+            <input type="text" id="search_filter" value="{{search_filter}}" placeholder="根据角色或用户名搜索" autocomplete="off" class="layui-input" style="width: 192px">
+        </div>
+    </div>
+    <div class="layui-inline" style="width: 100px">
+        <select id="role_selected" lay-filter="role">
+            <option value="">全部角色</option>
+            {% for role in roles  %}
+                {% if role.id == role_selected.id %}
+                <option value={{ role.id }} selected>{{ role.name }}</option>
+                {% else %}
+                <option value={{ role.id }}>{{ role.name }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    </div>   
+</form>
+<button class="layui-btn" id="search">搜索</button>
+<a href= {% url 'admins:PermUpdate' %}><button class="layui-btn">修改</button></a>
+<hr>
+<div class="layui-form">
+        <table class="layui-table">
+          <colgroup>
+            <col width="150">
+            <col width="150">
+            {% for role in all_role  %}
+            <col>
+            {% endfor %}
+          </colgroup>
+          <thead>
+            <tr>
+              <th>系统</th>
+              <th>权限</th>
+              {% for role in all_role  %}
+                <th>{{role.name}}</th>
+              {% endfor %}
+            </tr> 
+          </thead>
+          <tbody>
+          {% for perm in perm_list  %}
+            <tr>
+              <td>{{perm.perm_module}}</td>
+              <td>{{perm.perm_name}}</td>
+              {% for role in perm.roles %}
+                    {% if role %}
+                        <td><i class="layui-icon" style="color: #5FB878;">&#xe618;</i></td>
+                    {% else %}
+                        <td><i class="layui-icon" style="color: #FF5722;">&#x1006;</i></td>
+                    {% endif %}
+              {% endfor %}
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+{% endblock content %}
+
+{% block script %}
+
+<script>
+    var $ = layui.$;
+    
+    $('#search').on('click', function(){
+        var search_filter = $('#search_filter');
+        window.location.href = "/admins/role/search/?search_filter=" + search_filter.val();
+    });
+
+    var form = layui.form;
+    form.on('select(role)', function(data){
+        var search_filter = $('#search_filter');
+        var role = $('#role_selected');
+        window.location.href = "/admins/permission/?search_filter=" + search_filter.val() + "&&role=" + role.val();
+    });
+</script>
+        
+{% endblock script %}

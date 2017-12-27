@@ -1,0 +1,120 @@
+{% extends 'ifram.html' %}
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>资产管理</a>
+        <a href= {% url 'cmdb:HostList' %}><cite>主机列表</cite></a>
+        <a href= {% url 'cmdb:HostDetail' server_id %}><cite>{{host.ip}}</cite></a>
+    </span>
+</blockquote>
+<hr>
+<div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+    <ul class="layui-tab-title">
+        <li class="layui-this">基本信息</li>
+        <li>高级信息</li>
+        <li>自定义信息</li>
+    </ul>
+    <div class="layui-tab-content" style="height: 100px;">
+        <div class="layui-tab-item layui-show">
+            <div class="layui-container">  
+                <div class="layui-row">
+                    <div class="layui-row">
+                        <div class="layui-col-xs4 layui-col-sm4 layui-col-md4">
+                                <div class="layui-col-xs4 layui-col-sm4 layui-col-md4" align="right"><span style="color: #c2c2c2">主机名：</span></div>
+                                <div class="layui-col-xs8 layui-col-sm8 layui-col-md8">{{host.hostname}}</div>
+                        </div>
+                        <div class="layui-col-xs3 layui-col-sm3 layui-col-md3">
+                                <div class="layui-col-xs4 layui-col-sm4 layui-col-md4" align="right"><span style="color: #c2c2c2">运营状态：</span></div>
+                                <div class="layui-col-xs8 layui-col-sm8 layui-col-md8">{{host.host_status}}</div>
+                        </div>
+                        <div class="layui-col-xs5 layui-col-sm5 layui-col-md5">
+                            <div class="layui-col-xs4 layui-col-sm4 layui-col-md4" align="right"><span style="color: #c2c2c2">Salt：</span></div>
+                            <div class="layui-col-xs8 layui-col-sm8 layui-col-md8">{{host.minion_status}}</div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="layui-row">
+                        <div class="layui-col-xs4 layui-col-sm4 layui-col-md4">
+                                <div class="layui-col-xs4 layui-col-sm4 layui-col-md4" align="right"><span style="color: #c2c2c2">IP地址：</span></div>
+                                <div class="layui-col-xs8 layui-col-sm8 layui-col-md8">{{host.ip}}</div>
+                        </div>
+                        <div class="layui-col-xs3 layui-col-sm3 layui-col-md3">
+                            <div class="layui-col-xs4 layui-col-sm4 layui-col-md4" align="right"><span style="color: #c2c2c2">运维小组：</span></div>
+                            <div class="layui-col-xs8 layui-col-sm8 layui-col-md8">{{host.admin}}</div>
+                        </div>
+                        <div class="layui-col-xs5 layui-col-sm5 layui-col-md5">
+                            <div class="layui-col-xs4 layui-col-sm4 layui-col-md4" align="right"><span style="color: #c2c2c2">标签：</span></div>
+                            <div class="layui-col-xs8 layui-col-sm8 layui-col-md8">{{host.tags}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <iframe id="myiframe" name='myiframe' scrolling="yes" onload="changeFrameHeight()" frameborder="0" width="100%" src="{% url 'cmdb:zabbix' host.ip %}"></iframe>
+        </div>
+        <div class="layui-tab-item">
+            <div class="layui-container">  
+                <div class="layui-row">
+                    <div class="layui-row">
+                        <div class="layui-col-xs5 layui-col-sm5 layui-col-md5">
+                                <div class="layui-col-xs4 layui-col-sm4 layui-col-md4" align="right"><span style="color: #c2c2c2">操作系统：</span></div>
+                                <div class="layui-col-xs8 layui-col-sm8 layui-col-md8">{{host.os}}</div>
+                        </div>  
+                        <div class="layui-col-xs7 layui-col-sm7 layui-col-md7">
+                                <div class="layui-col-xs4 layui-col-sm4 layui-col-md4" align="right"><span style="color: #c2c2c2">CPU信息：</span></div>
+                                <div class="layui-col-xs8 layui-col-sm8 layui-col-md8">{{host.cpu}}</div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="layui-row">
+                        <div class="layui-col-xs5 layui-col-sm5 layui-col-md5">
+                            <div class="layui-col-xs4 layui-col-sm4 layui-col-md4" align="right"><span style="color: #c2c2c2">内存信息：</span></div>
+                            <div class="layui-col-xs8 layui-col-sm8 layui-col-md8">{{host.memSize}} G</div>
+                        </div>
+                        <div class="layui-col-xs7 layui-col-sm7 layui-col-md7">
+                            <div class="layui-col-xs4 layui-col-sm4 layui-col-md4" align="right"><span style="color: #c2c2c2">虚拟/物理：</span></div>
+                            <div class="layui-col-xs8 layui-col-sm8 layui-col-md8">{{host.is_virtual}}</div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="layui-row">
+                        <div class="layui-col-xs12 layui-col-sm12 layui-col-md12">
+                            <div class="layui-col-xs2 layui-col-sm2 layui-col-md2" align="right" style="width: 130px;"><span style="color: #c2c2c2">网卡信息：</span></div>
+                            <div class="layui-col-xs10 layui-col-sm10 layui-col-md10">{% autoescape off %}{{eth}}{% endautoescape %}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-tab-item">
+            {% for name, value in custom_info %}
+                <div class="layui-row">
+                    <div class="layui-col-xs12 layui-col-sm12 layui-col-md12">
+                        <div class="layui-col-xs2 layui-col-sm2 layui-col-md2" align="right" style="width: 130px;"><span style="color: #c2c2c2">{{name}}：</span></div>
+                        <div class="layui-col-xs10 layui-col-sm10 layui-col-md10">{{value}}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div> 
+
+{% endblock content %}
+
+{% block script %}
+<script type="text/javascript">
+    function changeFrameHeight(){
+        var ifm= document.getElementById("myiframe"); 
+        ifm.height=document.documentElement.clientHeight;
+      }
+
+    window.onresize=function(){  
+       changeFrameHeight();  
+    } 
+</script>
+        
+{% endblock script %}
+    
+

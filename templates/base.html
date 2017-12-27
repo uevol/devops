@@ -1,0 +1,184 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>{% block title %} 自动化运维平台 {% endblock title %}</title>
+    <link rel="stylesheet" href="{% static 'layui/css/layui.css' %}"> {% block css %} {% endblock css %}
+    <style scoped>
+        .layui-nav-child {
+            padding-left: 20px !important;
+        }
+
+        .base {
+            font-size: 16px;
+        }
+    </style>
+
+</head>
+
+<body class="layui-layout-body">
+    <div class="layui-layout layui-layout-admin">
+        <div class="layui-header">
+            <div class="layui-logo" style="font-size: 30px">
+                <a href="/" style="color: #f8fcfb">DevOps</a>
+            </div>
+            <!-- 头部区域（可配合layui已有的水平导航） -->
+            <ul class="layui-nav layui-layout-left">
+                <li class="layui-nav-item">
+                    <a onclick="webssh('{{webssh.host}}', '{{webssh.port}}')">Web终端</a>
+                </li>
+            </ul>
+            <ul class="layui-nav layui-layout-right">
+                <li class="layui-nav-item">
+                    <a href="javascript:;">{{request.user.username}}</a>
+                    <dl class="layui-nav-child">
+                    {% if request.user.id %}
+                        <dd>
+                            <a href= {% url 'admins:UserDetail' request.user.id %} target="myiframe">基本资料</a>
+                        </dd>
+                        <dd>
+                            <a href= {% url 'admins:UserChangePd' request.user.id %} target="myiframe">安全设置</a>
+                        </dd>
+                    {% endif %}
+                    </dl>
+                </li>
+                <li class="layui-nav-item">
+                    <a href="{% url 'logout' %}">注销</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="layui-side layui-bg-black">
+            <div class="layui-side-scroll">
+                <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+                <ul class="layui-nav layui-nav-tree" lay-filter="test">
+                    <li class="layui-nav-item">
+                        <a href= {% url 'dashboard:index' %} target="myiframe"><i class="layui-icon base">&#xe629; </i>Dashboard</a>
+                    </li>
+                    {% comment %} <li class="layui-nav-item layui-nav-itemed"> {% endcomment %}
+                        <li class="layui-nav-item">
+                            <a class="" href="javascript:;">
+                                <i class="layui-icon base">&#xe62d; </i>资产管理</a>
+                            <dl class="layui-nav-child">
+                                {% for item in CiCategory %}
+                                    <dd>
+                                        <a href="{{item.get_url}}" target="myiframe">{{item.name}}</a>
+                                    </dd>
+                                {% endfor %}
+                                <dd>
+                                    <a href="{% url 'cmdb:CategoryList' %}" target="myiframe">资源模型</a>
+                                </dd>
+                            </dl>
+                        </li>
+                        <li class="layui-nav-item">
+                            <a href="javascript:;">
+                                <i class="layui-icon base">&#xe631; </i>作业平台</a>
+                            <dl class="layui-nav-child">
+                                <dd>
+                                    <a  href="{% url 'ops:RemoteCmd' %}" target="myiframe">命令执行</a>
+                                </dd>
+                                <dd>
+                                    <a  href="{% url 'ops:PushFile' %}" target="myiframe">文件传输</a>
+                                </dd>
+                                <dd>
+                                    <a  href="{% url 'ops:ScriptList' %}" target="myiframe">脚本管理</a>
+                                </dd>
+                                <dd>
+                                    <a  href="#" target="myiframe">模块部署</a>
+                                </dd>
+                                <dd>
+                                    <a  href="#" target="myiframe">定时任务</a>
+                                </dd>
+                                <dd>
+                                    <a  href="#" target="myiframe">命令拦截</a>
+                                </dd>
+                                <dd>
+                                    <a  href="{% url 'ops:JobList' %}" target="myiframe">操作记录</a>
+                                </dd>
+                            </dl>
+                        </li>
+                        <li class="layui-nav-item">
+                            <a href="javascript:;">
+                                <i class="layui-icon base">&#xe612; </i>账户管理</a>
+                            <dl class="layui-nav-child">
+                                <dd>
+                                    <a href= {% url 'admins:UserList' %} target="myiframe">用户管理</a>
+                                </dd>
+                                <dd>
+                                    <a href= {% url 'admins:GroupList' %} target="myiframe">用户组管理</a>
+                                </dd>
+                            </dl>
+                        </li>
+                        <li class="layui-nav-item">
+                            <a href="javascript:;">
+                                <i class="layui-icon base">&#xe735; </i>权限管理</a>
+                            <dl class="layui-nav-child">
+                                <dd>
+                                    <a href= {% url 'admins:PermList' %} target="myiframe">权限列表</a>
+                                </dd>
+                                <dd>
+                                    <a href= {% url 'admins:RoleList' %} target="myiframe">角色管理</a>
+                                </dd>
+                            </dl>
+                        </li>
+                        <li class="layui-nav-item">
+                            <a href="javascript:;">
+                                <i class="layui-icon base">&#xe620; </i>系统设置</a>
+                            <dl class="layui-nav-child">
+                                <dd>
+                                    <a href= {% url 'admins:ServiceList' %} target="myiframe">服务管理</a>
+                                </dd>
+                            </dl>
+                        </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="layui-body">
+            <!-- 内容主体区域 -->
+            <div style="padding: 15px;">
+                {% block content %} <iframe id="myiframe" name='myiframe' scrolling="yes" onload="changeFrameHeight()" frameborder="0" width="100%" src="{% url 'dashboard:index' %}"></iframe> {% endblock content %}
+            </div>
+        </div>
+
+        {% comment %} <div class="layui-footer footer" style="text-align: center;">
+            ©2017
+            <a href="http://www.jinmuinfo.com">上海锦木信息有限公司</a>
+        </div> {% endcomment %}
+    </div>
+
+
+    <script src="{% static 'layui/layui.all.js' %}"></script>
+    <script type="text/javascript">
+        function changeFrameHeight(){
+            var ifm= document.getElementById("myiframe"); 
+            ifm.height=document.documentElement.clientHeight;
+          }
+
+        window.onresize=function(){  
+           changeFrameHeight();  
+        } 
+
+        function webssh(host, port){
+            var layer = layui.layer;
+            //console.log('http://' + host + ":" + port);
+            layer.open({
+                type: 2,
+                title: 'WebSSH',
+                shadeClose: true,
+                shade: false,
+                maxmin: true, //开启最大化最小化按钮
+                area: ['920px', '600px'],
+                content: 'http://' + host + ":" + port
+            });
+        }
+    </script>
+
+    {% block script %} {% endblock script %}
+
+</body>
+
+</html>

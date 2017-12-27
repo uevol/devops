@@ -1,0 +1,77 @@
+{% extends 'ifram.html' %}
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>资产管理</a>
+        <a href= {% url 'cmdb:CategoryList' %}><cite>资源模型</cite></a>
+        <a>更新模型</a>
+        <a href= {% url 'cmdb:CategoryDetail' category.id %}><cite>{{category.name}}</cite></a>
+    </span>
+</blockquote>
+<hr>
+<form class="layui-form" action="" method="">{% csrf_token %}
+        <div class="layui-form-item">
+          <label class="layui-form-label">模型名称 <span style="color: #FF5722">*</span></label>
+          <div class="layui-input-inline">
+            <input type="text" name="name" lay-verify="required" placeholder="请输入模型名称" autocomplete="off" class="layui-input" value="{{category.name}}">
+          </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">模型ID <span style="color: #FF5722">*</span></label>
+            <div class="layui-input-inline">
+                <input type="text" name="code" lay-verify="required" placeholder="请输入模型ID,如 host" autocomplete="off" class="layui-input" value="{{category.code}}" disabled>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">显示在左侧菜单 </label>
+            <div class="layui-input-block">
+                {% if category.show_in_left %}
+                <input type="checkbox" checked="" value="1" name="show_in_left" lay-skin="switch" lay-filter="switchTest" lay-text="是|否">
+                {% else %}
+                <input type="checkbox" value="1" name="show_in_left" lay-skin="switch" lay-filter="switchTest" lay-text="是|否">
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="layui-form-item layui-form-text">
+          <label class="layui-form-label">备注</label>
+          <div class="layui-input-block">
+            <textarea name="comment" placeholder="请输入内容" class="layui-textarea">{{category.comment | default_if_none:""}}</textarea>
+          </div>
+        </div>
+    
+        <div class="layui-form-item">
+          <div class="layui-input-block">
+            <button class="layui-btn" lay-submit="" lay-filter="demo1">立即更新</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+          </div>
+        </div>
+      </form>
+
+{% endblock content %}
+
+{% block script %}
+<script>
+    var form = layui.form;
+    form.on('submit(demo1)', function(data){
+        var $ = layui.$;
+        var index = layer.load(1);
+        $.post("{% url 'cmdb:CategoryUpdate' category.id %}", data.field, function(res){
+            layer.close(index);
+            if (res.code){
+                layer.msg(res.msg, {icon: 1});
+                setTimeout("window.location.href= \"{% url 'cmdb:CategoryDetail' category.id %}\"", 2000);
+            }
+            else {
+                layer.alert('错误信息:'+ res.msg);
+            } 
+        });
+        return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+    });
+</script>
+{% endblock script %}
+

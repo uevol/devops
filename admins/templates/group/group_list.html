@@ -1,0 +1,129 @@
+{% extends 'ifram.html' %}
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>账户管理</a>
+        <a href= {% url 'admins:GroupList' %}><cite>用户组管理</cite></a>
+    </span>
+</blockquote>
+<hr>
+<form class="layui-form layui-inline" action="">
+    <div class="layui-inline">
+        <div class="layui-input-inline">
+            <input type="text" id="search_filter" value="{{search_filter}}" placeholder="根据组名或用户名搜索" autocomplete="off" class="layui-input" style="width: 192px">
+        </div>
+    </div>
+    <div class="layui-inline">
+        <select id="user_group" lay-filter="user_group">
+            <option value="">全部用户组</option>
+            {% if all_group %}
+                {% for group in all_group %}
+                    {% if  group.name == user_group %}
+                    <option value={{ group.name }} selected>{{ group.name }}</option>
+                    {% else %}
+                    <option value={{ group.name }}>{{ group.name }}</option>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                {% for group in groups %}
+                    <option value={{ group.name }}>{{ group.name }}</option>
+                {% endfor %}
+            {% endif %}
+        </select>
+    </div>   
+</form>
+<button class="layui-btn" id="search">搜索</button>
+<a href= {% url 'admins:GroupCreate' %}><button class="layui-btn">新建用户组</button></a>
+
+<div class="layui-form">
+        <table class="layui-table">
+          <colgroup>
+            <col width="150">
+            <col>
+            <col width="120">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>用户组</th>
+              <th>成员</th>
+              <th>操作</th>
+            </tr> 
+          </thead>
+          <tbody>
+          {% for group in groups  %}
+            <tr id="{{group.id}}">
+              <td>{{group.name}} ({{group.user_set.count}})</td>
+              <td> 
+                    {% for user in group.user_set.all %}
+                        <button class="layui-btn layui-btn-xs layui-btn-radius delete_user" id="{{group.id}}-{{user.id}}" data-uid="{{user.id}}" data-gid="{{group.id}}">{{user.username}} <i class="layui-icon">&#xe640;</i></button>
+                    {% endfor %}
+              </td>
+              <td>
+                    <a href="{% url 'admins:GroupUpdate' group.id %}">
+                        <button class="layui-btn layui-btn-xs edit_group">编辑</i></button>
+                    </a>
+                    <button class="layui-btn layui-btn-xs layui-btn-danger delete_group" data-gid="{{group.id}}">删除</i></button>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+
+
+
+{% endblock content %}
+
+{% block script %}
+
+<script>
+    var $ = layui.$;
+    
+    $('#search').on('click', function(){
+        var search_filter = $('#search_filter');
+        var user_group = $('#user_group');
+        window.location.href = "/admins/group/search/?search_filter=" + search_filter.val() + "&&user_group=" + user_group.val();
+    });
+
+    $('.delete_user').on('click', function(){
+        var uid = $(this).data('uid');
+        var gid = $(this).data('gid');
+        $.get("/admins/group/" + gid + "/delete_user/" + uid, function(res){
+            if (res.code){
+                $('#' + gid + '-' + uid).remove();
+                layer.msg(res.msg, {icon: 1});
+            }
+            else {
+                layer.alert('错误信息:'+ res.msg);
+            }
+         });
+    });
+
+    $('.delete_group').on('click', function(){
+        var gid = $(this).data('gid');
+        layer.confirm('确定删除？', function(index){
+            $.get('/admins/group/' + gid + '/delete', function(res){
+                if (res.code) {
+                    $('#'+gid).remove();
+                    layer.msg(res.msg, {icon: 1});
+                }
+                else {
+                    layer.alert('错误信息:'+ res.msg);
+                }
+            });
+            layer.close(index);
+        });
+    });
+
+    var form = layui.form;
+    form.on('select(user_group)', function(data){
+        var search_filter = $('#search_filter');
+        var user_group = $('#user_group');
+        window.location.href = "/admins/group/search/?search_filter=" + search_filter.val() + "&&user_group=" + user_group.val();
+    });
+</script>
+        
+{% endblock script %}

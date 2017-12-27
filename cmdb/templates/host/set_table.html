@@ -1,0 +1,68 @@
+{% extends 'ifram.html' %}
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>资产管理</a>
+        <a href= {% url 'cmdb:HostList' %}><cite>主机列表</cite></a>
+        <a href= {% url 'cmdb:setTable' %}><cite>设置列表</cite></a>
+    </span>
+</blockquote>
+
+<hr>
+
+<div class="layui-col-xs12">
+    <p style="color: #FFB800">选择您想要显示在列表里的信息:</p>
+</div>
+<br><br>
+
+<form class="layui-form" action='' method="">{% csrf_token %}
+
+    <div class="layui-row">
+        {% for item in category.ciproperty_set.all %}
+            <div class="layui-col-xs3" style="margin-bottom: 5px">
+                {% if item.show_in_table %}
+                    <input type="checkbox" name="{{item.code}}" value="{{item.id}}" lay-skin="primary" title={{item.name}} checked=''>
+                {% else %}
+                    <input type="checkbox" name="{{item.code}}" value="{{item.id}}" lay-skin="primary" title={{item.name}}>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    <br>
+
+    <div class="layui-row">
+        <button class="layui-btn" lay-submit="" lay-filter="demo1">提交更新</button>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+    </div>
+</form>
+
+{% endblock content %}
+
+{% block script %}
+
+<script>
+    var form = layui.form;
+    form.on('submit(demo1)', function(data){
+        //console.log(data.field) //当前容器的全部表单字段，名值对形式：{name: value}
+        var $ = layui.$;
+        var index = layer.load(1);
+        $.post("{% url 'cmdb:setTable' %}", data.field, function(res){
+            layer.close(index);
+            if (res.code){
+                layer.msg(res.msg, {icon: 1});
+                setTimeout("window.location.href= \"{% url 'cmdb:HostList' %}\"", 2000);
+            }
+            else {
+                layer.alert('错误信息:'+ res.msg);
+            } 
+        });
+        return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+    });
+
+</script>
+        
+{% endblock script %}
+    
+

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="utf-8">
+    <title>webssh</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="static/layui/css/layui.css" media="all">
+</head>
+<body>
+<div class="layui-container">
+    <div class="layui-row">
+        <form id="form" name="form" class="layui-form" style="margin-top: 20px">
+        <div class="layui-col-xs6 layui-col-sm6 layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">Host <span style="color: #FF5722">*</span></label>
+                <div class="layui-input-inline">
+                    <input type="text" id="host" name="host" placeholder="Host" lay-verify="required" class="layui-input">
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-col-xs6 layui-col-sm6 layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">Port <span style="color: #FF5722">*</span></label>
+                <div class="layui-input-inline">
+                    <input type="text" id="port" name="port" placeholder="Port" lay-verify="required" class="layui-input">
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-col-xs6 layui-col-sm6 layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">Username <span style="color: #FF5722">*</span></label>
+                <div class="layui-input-inline">
+                    <input id="username" name="username" type="text" placeholder="Username" lay-verify="required" class="layui-input">
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-col-xs6 layui-col-sm6 layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">Password <span style="color: #FF5722">*</span></label>
+                <div class="layui-input-inline">
+                    <input id="secret" name="secret" type="password" placeholder="Password" lay-verify="required" class="layui-input">
+                </div>
+            </div>
+        </div>
+
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button type="button" class="layui-btn" onclick="connect()">Connect</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="layui-col-xs12 layui-col-sm12 layui-col-md12">
+        <div id="term" class="layui-col-xs12 layui-col-sm12 layui-col-md12"></div>
+    </div>
+</div>      
+
+<script src="http://cdn.bootcss.com/jquery/2.1.2/jquery.min.js"></script>
+<script src="https://rawgit.com/chjj/term.js/master/src/term.js"></script>
+<script src="static/js/ws.js"></script>
+<script src="static/js/formvalid.js"></script>
+<script src="static/js/main.js"></script>
+<script src="static/layui/layui.all.js"></script>
+<script type="application/javascript">
+    $(function () {
+        $("#form").valid([
+            {name: "host", type: "ip"},
+            {name: "port", type: "port"},
+            {name: "username", type: "username"},
+            //{name: "password", type: "password"},
+        ]);
+    })
+</script>
+</body>
+</html>

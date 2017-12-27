@@ -1,0 +1,103 @@
+{% extends 'ifram.html' %}
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>作业平台</a>
+        <a href="{% url 'ops:ScriptList' %}"><cite>脚本管理</cite></a>
+    </span>
+</blockquote>
+
+<form class="layui-form layui-inline" action="">
+        <div class="layui-inline">
+            <div class="layui-input-inline">
+                <input type="text" id="search_filter" name="search_filter" placeholder="脚本名、脚本别名或者创建者搜索脚本" autocomplete="off" class="layui-input" style="width: 300px">
+            </div>
+        </div>
+</form>
+<button type="button" class="layui-btn" id="test1"><i class="layui-icon">&#xe67c;</i>上传脚本</button>
+<hr>
+<table class="layui-hide" id="demo" lay-filter="demo"></table>
+
+{% endblock content %}
+
+{% block script %}
+
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs" lay-event="view">查看</a>
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-xs" lay-event="run">执行</a>
+    <a class="layui-btn layui-btn-xs" lay-event="delete">删除</a>
+</script>
+
+<script>
+    var table = layui.table;
+    var tableIns = table.render({
+        elem: '#demo'
+        ,url: '/ops/script/listAPI' //数据接口
+        ,cols: [[
+        {field: 'name', title: '脚本名', width:150, fixed: true}
+        ,{field: 'script_name', title: '脚本别名', width:170, sort: true}
+        ,{field: 'created_by', title: '创建者', width:120} 
+        ,{field: 'comment', title: '备注', minWidth:100}
+        ,{field: 'create_time', title: '创建时间', width: 90}
+        ,{field: 'update_time', title: '上次修改时间', minWidth: 150}
+        ,{title: '操作', fixed: 'right', width:250, align:'center', toolbar: '#barDemo'}
+        ]]
+        ,page: true
+    });
+
+    //监听工具条
+    table.on('tool(demo)', function(obj){
+        var data = obj.data;
+        if (obj.event === 'view'){
+            layer.open({
+                type: 2,
+                title: "Job ID: " + data.cjid,
+                shadeClose: true,
+                shade: false,
+                maxmin: true, //开启最大化最小化按钮
+                area: ['920px', '500px'],
+                content: '/ops/job_list/detail/' + data.cjid
+            });
+        } 
+    });
+
+    var $ = layui.$;
+    function tableReload() {
+        //执行重载
+        tableIns.reload({
+            url: '/ops/job_list/api',
+            where: {'keyword': keyword}
+        });
+    }
+
+    var upload = layui.upload;
+    //执行实例
+    var csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();
+    var uploadInst = upload.render({
+        elem: '#test1' //绑定元素
+        ,url: "{% url 'ops:UploadFile' %}" //上传接口
+        ,data: {'csrfmiddlewaretoken': csrfmiddlewaretoken}
+        ,accept: 'file'
+        ,exts: 'py|sh|zip|rar|tar|tar.gz|gz|txt|log|xml|yaml|conf|ini'
+        ,done: function(res, index, upload){
+        //上传完毕回调
+            if (res.code) {
+                layer.msg(res.msg);
+                tableReload();
+            } else {
+                layer.alert(res.msg);
+            }
+        }
+        ,error: function(){
+        //请求异常回调
+            layer.msg('fail');
+        }
+    });
+</script>
+        
+{% endblock script %}
+    
+

@@ -1,0 +1,109 @@
+{% extends 'ifram.html' %}
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>作业平台</a>
+        <a href="{% url 'ops:JobList' %}"><cite>操作记录</cite></a>
+    </span>
+</blockquote>
+
+<form class="layui-form" method="post" action="#" id='zabbix'>{% csrf_token %}
+    <div class="layui-col-xs6 layui-col-sm6 layui-col-md6">
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">时间范围</label>
+                <div class="layui-input-inline" style="width: 150px;">
+                    <input type="text" name="dt_from" id="dt_from" placeholder="yyyy-MM-dd HH:mm:ss" value="{{dt_from}}" autocomplete="off" class="layui-input" required>
+                </div>
+                <div class="layui-form-mid">-</div>
+                <div class="layui-input-inline" style="width: 150px;">
+                    <input type="text" name="dt_till" id="dt_till" placeholder="yyyy-MM-dd HH:mm:ss" value="{{dt_till}}" autocomplete="off" class="layui-input" required>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<hr>
+<table class="layui-hide" id="demo" lay-filter="demo"></table>
+
+{% endblock content %}
+
+{% block script %}
+
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs" lay-event="view">查看结果</a>
+</script>
+
+<script>
+    var table = layui.table;
+    var tableIns = table.render({
+        elem: '#demo'
+        ,url: '/ops/job_list/api' //数据接口
+        ,cols: [[
+        {field: 'user', title: '用户', width:150, fixed: true}
+        ,{field: 'time', title: '时间', width:170, sort: true}
+        ,{field: 'client', title: '客户端', width:120} 
+        ,{field: 'target', title: '操作对象', minWidth:100}
+        ,{field: 'fun', title: '执行模块', width: 90}
+        ,{field: 'arg', title: '命令参数', minWidth: 150}
+        ,{field: 'progress', title: '执行进度', width: 100, sort: true}
+        ,{title: '操作', fixed: 'right', width:100, align:'center', toolbar: '#barDemo'}
+        ]]
+        ,page: true
+    });
+
+    //监听工具条
+    table.on('tool(demo)', function(obj){
+        var data = obj.data;
+        if (obj.event === 'view'){
+            layer.open({
+                type: 2,
+                title: "Job ID: " + data.cjid,
+                shadeClose: true,
+                shade: false,
+                maxmin: true, //开启最大化最小化按钮
+                area: ['920px', '500px'],
+                content: '/ops/job_list/detail/' + data.cjid
+            });
+        } 
+    });
+
+    var $ = layui.$;
+    function tableReload(dt_from, dt_till) {
+        //执行重载
+        tableIns.reload({
+            url: '/ops/job_list/api',
+            where: {
+                "dt_from": dt_from,
+                "dt_till": dt_till
+            }
+        });
+    }
+
+    //日期时间范围
+    var laydate = layui.laydate;
+    laydate.render({
+        elem: '#dt_from'
+        ,type: 'datetime'
+        ,done: function(value, date, endDate){
+            //console.log(value);
+            var dt_till = $("#dt_till").val();
+            tableReload(value, dt_till);
+        }
+    });
+
+    laydate.render({
+        elem: '#dt_till'
+        ,type: 'datetime'
+        ,done: function(value, date, endDate){
+            var dt_from = $("#dt_from").val();
+            tableReload(dt_from, value);
+        }
+    });
+</script>
+        
+{% endblock script %}
+    
+

@@ -1,0 +1,167 @@
+{% extends 'ifram.html' %}
+{% load staticfiles %}
+
+{% block css %} 
+{% endblock css %}
+
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>资产管理</a>
+        <a href="{% url 'cmdb:CategoryList' %}"><cite>资源模型</cite></a>
+        <a href="{% url 'cmdb:CategoryDetail' ci_property.ci_category.id %}"><cite>{{ci_property.ci_category.name}}</cite></a>
+        <a href=""><cite>{{ci_property.name}}</cite></a>
+    </span>
+</blockquote>
+<hr>
+<form class="layui-form" action="" method="">{% csrf_token %}
+    
+        <div class="layui-form-item">
+            <label class="layui-form-label">属性ID <span style="color: #FF5722">*</span></label>
+            <div class="layui-input-inline">
+                <input type="text" lay-verify="required" class="layui-input" value="{{ci_property.code}}" disabled>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">属性名称 <span style="color: #FF5722">*</span></label>
+            <div class="layui-input-inline">
+            <input type="text" name="name" lay-verify="required" placeholder="请输入模型名称" autocomplete="off" class="layui-input" value="{{ci_property.name}}">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">值类型</label>
+            <div class="layui-input-inline">
+                {% if ci_property.is_must %}
+                    <select name="value_type" lay-verify="required" disabled>
+                        <option value=""></option>
+                        {% for value_type in ci_property.get_value_type_choice  %}
+                            {% if ci_property.value_type == value_type.0 %}
+                                <option value="{{value_type.0}}" selected>{{value_type.1}}</option>
+                            {% else %}
+                                <option value="{{value_type.0}}">{{value_type.1}}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                {% else %}
+                    <select name="value_type" lay-verify="required">
+                            <option value=""></option>
+                            {% for value_type in ci_property.get_value_type_choice  %}
+                                {% if ci_property.value_type == value_type.0 %}
+                                    <option value="{{value_type.0}}" selected>{{value_type.1}}</option>
+                                {% else %}
+                                    <option value="{{value_type.0}}">{{value_type.1}}</option>
+                                {% endif %}
+                            {% endfor %}
+                    </select>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="layui-form-item" pane="">
+            <label class="layui-form-label">属性</label>
+            <div class="layui-input-block">
+                {% if ci_property.is_must %}
+                    {% if ci_property.form_type == 'required' %}
+                        <input type="radio" name="form_type" value="optional" title="可选" disabled>
+                        <input type="radio" name="form_type" value="required" title="必填" checked disabled>
+                    {% else %}
+                        <input type="radio" name="form_type" value="optional" title="可选" checked disabled>
+                        <input type="radio" name="form_type" value="required" title="必填" disabled>
+                    {% endif %}
+                {% else %}
+                    {% if ci_property.form_type == 'required' %}
+                        <input type="radio" name="form_type" value="optional" title="可选">
+                        <input type="radio" name="form_type" value="required" title="必填" checked>
+                    {% else %}
+                        <input type="radio" name="form_type" value="optional" title="可选" checked>
+                        <input type="radio" name="form_type" value="required" title="必填">
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="layui-form-item" pane="">
+            <label class="layui-form-label">在列表显示</label>
+            <div class="layui-input-block">
+                {% if ci_property.show_in_table %}
+                    <input type="radio" name="show_in_table" value="1" title="是" checked>
+                    <input type="radio" name="show_in_table" value="0" title="否">
+                {% else %}
+                <input type="radio" name="show_in_table" value="1" title="是">
+                <input type="radio" name="show_in_table" value="0" title="否" checked>
+                {% endif %}
+            </div>
+        </div>
+
+            <div class="layui-form-item" pane="">
+                    <label class="layui-form-label">参与搜索</label>
+                    <div class="layui-input-block">
+                        {% if ci_property.is_search %}
+                            <input type="radio" name="is_search" value="1" title="是" checked>
+                            <input type="radio" name="is_search" value="0" title="否">
+                        {% else %}
+                            <input type="radio" name="is_search" value="1" title="是">
+                            <input type="radio" name="is_search" value="0" title="否" checked>
+                        {% endif %}
+                    </div>
+                </div>
+
+        
+        <div class="layui-form-item">
+            <label class="layui-form-label">枚举值 </label>
+            <div class="layui-input-block">
+                {% if ci_property.optional_value %}
+                    <textarea placeholder="可不填" class="layui-textarea" name="optional_value">{{ci_property.optional_value}}</textarea>
+                {% else %}
+                    <textarea placeholder="可不填" class="layui-textarea" name="optional_value"></textarea>
+                {% endif %}
+            </div>
+            <div class="layui-input-block">
+                <div class="layui-form-mid layui-word-aux"><span style="color: #FF5722">注意: 如果值类型是数组，请用分号(英文状态下)分隔数组元素，各元素间不要有空格</span></div>
+            </div>
+            
+        </div>
+    
+        <div class="layui-form-item">
+          <div class="layui-input-block">
+            <button class="layui-btn" lay-submit="" lay-filter="demo1">立即更新</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+          </div>
+        </div>
+      </form>
+
+{% endblock content %}
+
+{% block script %}
+<script>
+    var $ = layui.$;
+    var form = layui.form;
+    form.on('submit(demo1)', function(data){
+        var index = layer.load(1);
+        $.post("{% url 'cmdb:PropertyUpdate' ci_property.id %}", data.field, function(res){
+            layer.close(index);
+            if (res.code){
+                layer.msg(res.msg, {icon: 1});
+                setTimeout("window.location.href= \"{% url 'cmdb:CategoryDetail' ci_property.ci_category.id %}\"", 2000);
+            }
+            else {
+                layer.alert('错误信息:'+ res.msg);
+            } 
+        });
+        return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+    });
+
+    var layer = layui.layer;
+    var tipsi;
+    $("#hover").hover(function(){
+       tipsi = layer.tips('系统属性,不能删除',this,{time:0});
+     },function(){
+          layer.close(tipsi);
+     });
+</script>
+
+{% endblock script %}

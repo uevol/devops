@@ -1,0 +1,78 @@
+{% extends 'ifram.html' %}
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>权限管理</a>
+        <a href= {% url 'admins:PermList' %}><cite>权限列表</cite></a>
+        <a href="">修改权限</a>
+    </span>
+</blockquote>
+<hr>
+<form class="layui-form">{% csrf_token %}
+<button class="layui-btn" lay-submit="" lay-filter="demo1">保存修改</button>
+<button type="reset" class="layui-btn layui-btn-primary">重置</button>
+<div class="layui-form">
+        <table class="layui-table" id='perm_role_table'>
+          <colgroup>
+            <col width="150">
+            <col width="150">
+            {% for role in all_role  %}
+            <col>
+            {% endfor %}
+          </colgroup>
+          <thead>
+            <tr>
+              <th>系统</th>
+              <th>权限</th>
+              {% for role in all_role  %}
+                <th>{{role.name}}</th>
+              {% endfor %}
+            </tr> 
+          </thead>
+          <tbody>
+          {% for perm in perm_list  %}
+            <tr id="{{perm.perm_id}}">
+              <td>{{perm.perm_module}}</td>
+              <td>{{perm.perm_name}}</td>
+              {% for role in perm.roles %}
+                    {% if role.status %}
+                        <td><input type="checkbox" name="{{perm.perm_id}}-{{role.id}}" value={{role.id}} lay-skin="primary" checked=''></td>
+                    {% else %}
+                        <td><input type="checkbox" name="{{perm.perm_id}}-{{role.id}}" value={{role.id}} lay-skin="primary"></td>
+                    {% endif %}
+              {% endfor %}
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+</form>
+
+{% endblock content %}
+
+{% block script %}
+
+<script>
+    var form = layui.form;
+    form.on('submit(demo1)', function(data){
+        //console.log(data.elem) //被执行事件的元素DOM对象，一般为button对象
+        //console.log(data.form) //被执行提交的form对象，一般在存在form标签时才会返回
+        //console.log(data.field) //当前容器的全部表单字段，名值对形式：{name: value}
+        var $ = layui.$;
+        var index = layer.load(1);
+        $.post("{% url 'admins:PermUpdate' %}", data.field, function(res){
+            if (res.code){
+                layer.msg(res.msg, {icon: 1});
+            }
+            else {
+                layer.alert('错误信息:'+ res.msg);
+            }
+            layer.close(index);
+        });
+        return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可.
+    });
+</script>
+        
+{% endblock script %}l

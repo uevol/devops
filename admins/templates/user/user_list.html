@@ -1,0 +1,132 @@
+{% extends 'ifram.html' %}
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>账户管理</a>
+        <a href= {% url 'admins:UserList' %}><cite>用户管理</cite></a>
+    </span>
+</blockquote>
+
+<form class="layui-form layui-inline" action="">
+        <div class="layui-inline">
+            <div class="layui-input-inline">
+                <input type="text" id="search_filter" name="search_filter" placeholder="根据用户名、邮箱搜索用户" autocomplete="off" class="layui-input" style="width: 192px">
+            </div>
+        </div>
+        <div class="layui-inline" style="width: 100px">
+            <select id="role" lay-filter="role">
+                <option value="">全部角色</option>
+                {% for role in roles  %}
+                    <option value={{ role.name }}>{{ role.name }}</option>
+                {% endfor %}
+            </select>
+        </div>   
+</form>
+<button class="layui-btn" id="search" data-type="reload">搜索</button>
+<a href= {% url 'admins:UserCreate' %}><button class="layui-btn">新建用户</button></a>
+<hr>
+<table class="layui-hide" id="demo" lay-filter="demo"></table>
+
+{% endblock content %}
+
+{% block script %}
+
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="resetpd">重置密码</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<script>
+    var table = layui.table;
+    var tableIns = table.render({
+        elem: '#demo'
+        ,url: '/admins/user/list/' //数据接口
+        ,height: 'full-240'
+        ,cols: [[
+        {type:'checkbox', fixed: 'left'}
+        ,{field: 'username', title: '用户名', width:150, fixed: true}
+        ,{field: 'email', title: '邮箱', width:220, sort: true}
+        ,{field: 'roles', title: '角色', width:200} 
+        ,{field: 'is_active', title: '状态', width: 80}
+        ,{field: 'last_login', title: '上次登录时间', width: 210, sort: true}
+        ,{field: 'phone', title: '电话', width: 150, sort: true}
+        ,{field: 'wechat', title: '微信', width: 150}
+        ,{field: 'comment', title: '备注', width: 150, sort: true}
+        ,{title: '操作', fixed: 'right', width:188, align:'center', toolbar: '#barDemo'}
+        //,{field: 'id', title: 'id', style: "display: none;" }
+        ]]
+        ,page: true
+    });
+
+    table.on('checkbox(demo)', function(obj){
+        console.log(obj)
+        });
+
+    //监听工具条
+    table.on('tool(demo)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'del'){
+            layer.confirm('确定删除？', function(index){
+                $.get('/admins/user/' + data.id + '/delete', function(res){
+                    if (res.code) {
+                        obj.del();
+                        layer.msg(res.msg, {icon: 1});
+                    }
+                    else {
+                        layer.alert('错误信息:'+ res.msg);
+                    }
+                });
+                layer.close(index);
+            });
+        } else if(obj.event === 'edit'){
+            //layer.alert('编辑行：<br>'+ JSON.stringify(data))
+            window.location.href = '/admins/user/' + data.id + '/update';
+        } else if(obj.event === 'resetpd') {
+            layer.confirm('确定重置密码？', function(index){
+                $.get('/admins/user/' + data.id + '/resetpassword', function(res){
+                    if (res.code) {
+                        layer.alert(res.msg);
+                    }
+                    else {
+                        layer.alert('错误信息:'+ res.msg);
+                    }
+                });
+                layer.close(index);
+            });
+        }
+    });
+
+    var $ = layui.$, active = {
+            reload: function(){
+                var search_filter = $('#search_filter');
+                var role = $('#role');
+            
+                //执行重载
+                tableIns.reload({
+                    url: '/admins/user/list/',
+                    where: {
+                    "search_filter": search_filter.val(),
+                    "role": role.val()
+                    }
+                });
+            }
+        };
+      
+    $('#search').on('click', function(){
+        var type = $(this).data('type');
+        active[type] ? active[type].call(this) : '';
+    });
+
+    var form = layui.form;
+    form.on('select(role)', function(data){
+        //console.log(data);
+        active['reload'].call(this);
+    });
+</script>
+        
+{% endblock script %}
+    
+

@@ -1,0 +1,96 @@
+getvmsbycluster
+
+python getvmsbycluster.py -s 192.168.3.195 -u administrator@vsphere.local -p R00t@123
+
+{
+    "Datacenter": {
+        "HA": {
+            "192.168.3.165": {
+                "C6": {
+                    "annotation": "", 
+                    "cpu": "1", 
+                    "diskGB": "1.00", 
+                    "folder": "\u5df2\u53d1\u73b0\u865a\u62df\u673a", 
+                    "mem": "2", 
+                    "net": {}, 
+                    "ostype": "CentOS 6 (64 \u4f4d)", 
+                    "path": "[datastore] C6/C6.vmx", 
+                    "state": "poweredOff"
+                }, 
+                "cobbler": {
+                    "annotation": "", 
+                    "cpu": "1", 
+                    "diskGB": "24.00", 
+                    "folder": "\u5df2\u53d1\u73b0\u865a\u62df\u673a", 
+                    "mem": "2", 
+                    "net": {}, 
+                    "ostype": "CentOS 6 (64 \u4f4d)", 
+                    "path": "[datastore] cobbler/cobbler.vmx", 
+                    "state": "poweredOn"
+                }, 
+                "dev": {
+                    "annotation": "", 
+                    "cpu": "2", 
+                    "diskGB": "4.00", 
+                    "folder": "\u5df2\u53d1\u73b0\u865a\u62df\u673a", 
+                    "mem": "2", 
+                    "net": {}, 
+                    "ostype": "CentOS 7 (64 \u4f4d)", 
+                    "path": "[datastore] dev/dev.vmx", 
+                    "state": "poweredOn"
+                }, 
+                "saltstack": {
+                    "annotation": "", 
+                    "cpu": "1", 
+                    "diskGB": "5.00", 
+                    "folder": "\u5df2\u53d1\u73b0\u865a\u62df\u673a", 
+                    "mem": "2", 
+                    "net": {}, 
+                    "ostype": "CentOS 6 (64 \u4f4d)", 
+                    "path": "[datastore] saltstack/saltstack.vmx", 
+                    "state": "poweredOn"
+                }, 
+                "splunk": {
+                    "annotation": "", 
+                    "cpu": "2", 
+                    "diskGB": "11.00", 
+                    "folder": "\u5df2\u53d1\u73b0\u865a\u62df\u673a", 
+                    "mem": "2", 
+                    "net": {}, 
+                    "ostype": "CentOS 7 (64 \u4f4d)", 
+                    "path": "[datastore] Splunk/Splunk.vmx", 
+                    "state": "poweredOff"
+                }, 
+                "vcenter": {
+                    "annotation": "", 
+                    "cpu": "2", 
+                    "diskGB": "21.00", 
+                    "folder": "\u5df2\u53d1\u73b0\u865a\u62df\u673a", 
+                    "mem": "8", 
+                    "net": {}, 
+                    "ostype": "Microsoft Windows Server 2008 R2 (64 \u4f4d)", 
+                    "path": "[datastore] vcenter/vcenter.vmx", 
+                    "state": "poweredOn"
+                }, 
+                "vpn": {
+                    "annotation": "", 
+                    "cpu": "1", 
+                    "diskGB": "5.00", 
+                    "folder": "\u5df2\u53d1\u73b0\u865a\u62df\u673a", 
+                    "mem": "2", 
+                    "net": {
+                        "00:0c:29:14:aa:3b": {
+                            "connected": true, 
+                            "ip": "192.168.3.171", 
+                            "netlabel": "VM Network", 
+                            "prefix": 24
+                        }
+                    }, 
+                    "ostype": "CentOS 7 (64 \u4f4d)", 
+                    "path": "[datastore] zabbix/zabbix.vmx", 
+                    "state": "poweredOn"
+                }
+            }
+        }
+    }
+}

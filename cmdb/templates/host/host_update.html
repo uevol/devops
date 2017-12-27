@@ -1,0 +1,145 @@
+{% extends 'ifram.html' %}
+{% load staticfiles %}
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>资产管理</a>
+        <a href= {% url 'cmdb:HostList' %}><cite>主机管理</cite></a>
+        <a href= {% url 'cmdb:HostList' %}><cite>主机更新</cite></a>
+        <a href=""><cite>{{host.ip}}</cite></a>
+    </span>
+</blockquote>
+<hr>
+
+<div class="layui-row">
+    <div class="layui-col-xs12 layui-col-sm12 layui-col-md12">
+        <p style="color: #FFB800">以下信息通过salt客户端自动采集更新，无需手动更新</p> 
+    </div>
+    <br><br>
+</div>
+{% for name, value in not_edit_item_info %}
+<div class="layui-row">
+    <div class="layui-col-xs12 layui-col-sm12 layui-col-md12">
+        <div class="layui-col-xs2 layui-col-sm2 layui-col-md2" align="right" style="width: 130px;"><span style="color: #c2c2c2">{{name}}：</span></div>
+        <div class="layui-col-xs10 layui-col-sm10 layui-col-md10">{{value}}</div>
+    </div>
+    <br><br>
+</div>
+{% endfor %}
+<hr>
+<div class="layui-row">
+    <div class="layui-col-xs12 layui-col-sm12 layui-col-md12">
+        <p style="color: #FFB800">以下信息可提交更新</p>
+    </div>
+    <br><br>
+</div>
+<form class="layui-form" action="" method="">{% csrf_token %}
+    <div class="layui-form-item" pane="">
+        <label class="layui-form-label">{{admin_item.name}} <span style="color: #FF5722">*</span></label>
+        <div class="layui-input-block">
+            {% for user in users %}
+                {% if user in admin %}
+                <input type="checkbox" name="{{admin_item.code}}-{{admin_item.value_type}}" value={{user}} lay-skin="primary" title={{user}} checked=''>
+                {% else %}
+                <input type="checkbox" name="{{admin_item.code}}-{{admin_item.value_type}}" value={{user}} lay-skin="primary" title={{user}}>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    <div class="layui-form-item" pane="">
+        <label class="layui-form-label">{{tags_item.name}}</label>
+        <div class="layui-input-block">
+            <input name="{{tags_item.code}}-{{tags_item.value_type}}" id="{{tags_item.code}}-{{tags_item.value_type}}" value="{{tags}}" class="layui-input">
+        </div>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux"><span style="color: #FF5722">注意: 多个标签请用分号(英文状态下)分隔，各标签间不要有空格。</span></div>
+        </div>
+    </div>
+
+    
+    {% for name, code, value, form_type, value_type, optional_value in edit_item_info %}
+        <div class="layui-form-item">
+            {% if form_type == 'required' %}
+                <label class="layui-form-label">{{name}} <span style="color: #FF5722">*</span></label>
+                {% if optional_value %}
+                    <div class="layui-input-inline">
+                        {% if value_type == 'array' %}
+                        <select name="{{code}}-{{value_type}}" lay-verify="required" multiple>
+                        {% else %}
+                        <select name="{{code}}-{{value_type}}" lay-verify="required">
+                        {% endif %}
+                                <option value=""></option>
+                                {% for i in optional_value  %}
+                                    {% if i == value %}
+                                        <option value="{{i}}" selected>{{i}}</option>
+                                    {% else %}
+                                        <option value="{{i}}">{{i}}</option>
+                                    {% endif %}
+                                {% endfor %}
+                        </select>
+                    </div>
+                {% else %}
+                    <div class="layui-input-inline">
+                        <input type="text" name="{{code}}-{{value_type}}" lay-verify="required" class="layui-input" value="{{value}}">
+                    </div>
+                {% endif %}
+            {% else %}
+                <label class="layui-form-label">{{name}}</label>
+                {% if optional_value %}
+                    <div class="layui-input-inline">
+                        <select name="{{code}}-{{value_type}}" lay-verify="required">
+                            <option value=""></option>
+                            {% for i in optional_value  %}
+                                {% if i == value %}
+                                    <option value="{{i}}" selected>{{i}}</option>
+                                {% else %}
+                                    <option value="{{i}}">{{i}}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% else %}
+                    <div class="layui-input-inline">
+                        <input type="text" name="{{code}}-{{value_type}}" class="layui-input" value="{{value}}">
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    {% endfor %}
+    <div class="layui-row">
+        <button class="layui-btn" lay-submit="" lay-filter="demo1">提交更新</button>
+        <button type="reset" class="layui-btn layui-btn-primary">取消</button>
+    </div>
+</form>
+
+{% endblock content %}
+
+{% block script %}
+<script>
+    var $ = layui.$;
+    var form = layui.form;
+    form.on('submit(demo1)', function(data){
+        data.field["{{admin_item.code}}-{{admin_item.value_type}}"] = $("input[name='{{admin_item.code}}-{{admin_item.value_type}}']:checkbox:checked").map(function(){return $(this).val();}).get()
+        data.field["{{tags_item.code}}-{{tags_item.value_type}}"] = $("#{{tags_item.code}}-{{tags_item.value_type}}").val().split(";");
+        //console.log(data.field); //当前容器的全部表单字段，名值对形式：{name: value}
+        
+        // post for update
+        var index = layer.load(1);
+        $.post("{% url 'cmdb:HostUpdate' host.server_id %}", data.field, function(res){
+            if (res.code){
+                layer.msg(res.msg, {icon: 1});
+                setTimeout("window.location.href= \"{% url 'cmdb:HostUpdate' host.server_id %}\"", 2000);
+            }
+            else {
+                layer.alert('错误信息:'+ res.msg);
+            }
+            layer.close(index);
+        });
+        return false;
+     });
+</script>   
+{% endblock script %}
+    
+

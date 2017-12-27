@@ -1,0 +1,127 @@
+{% extends 'ifram.html' %}
+{% load staticfiles %}
+
+{% block css %} 
+{% endblock css %}
+
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>资产管理</a>
+        <a href="{% url 'cmdb:CategoryList' %}"><cite>资源模型</cite></a>
+        <a href="{% url 'cmdb:CategoryDetail' category.id %}"><cite>{{category.name}}</cite></a>
+        <a href=""><cite>添加属性</cite></a>
+    </span>
+</blockquote>
+<hr>
+<form class="layui-form" action="" method="">{% csrf_token %}
+    
+        <div class="layui-form-item">
+            <label class="layui-form-label">属性ID <span style="color: #FF5722">*</span></label>
+            <div class="layui-input-inline">
+                <input type="text" name="code" lay-verify="required|code" class="layui-input" autocomplete="off" placeholder="请输入模型ID">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">属性名称 <span style="color: #FF5722">*</span></label>
+            <div class="layui-input-inline">
+            <input type="text" name="name" lay-verify="required" placeholder="请输入模型名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">值类型</label>
+            <div class="layui-input-inline">
+                <select name="value_type" lay-verify="required">
+                    <option value=""></option>
+                    {% for value_type in value_type_choice  %}
+                        {% if value_type.0 == 'str' %}
+                            <option value="{{value_type.0}}" selected>{{value_type.1}}</option>
+                        {% else %}
+                            <option value="{{value_type.0}}">{{value_type.1}}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">枚举值 </label>
+            <div class="layui-input-block">
+                <textarea placeholder="可不填" class="layui-textarea" name="optional_value"></textarea>
+            </div>
+            <div class="layui-input-block">
+                <div class="layui-form-mid layui-word-aux">注意: 如果有多个值，请用 ( ; ) 分隔</div>
+            </div>
+            
+        </div>
+
+        <div class="layui-form-item" pane="">
+            <label class="layui-form-label">属性</label>
+            <div class="layui-input-block">
+               {% for form_type in form_type_choice %}
+                    {% if form_type.0 == 'optional' %}
+                            <input type="radio" name="form_type" value="{{form_type.0}}" title="{{form_type.1}}" checked>
+                    {% else %}
+                            <input type="radio" name="form_type" value="{{form_type.0}}" title="{{form_type.1}}">
+                    {% endif %}
+               {% endfor %}
+            </div>
+        </div>
+    
+        <div class="layui-form-item">
+          <div class="layui-input-block">
+            <button class="layui-btn" lay-submit="" lay-filter="demo1">立即更新</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+          </div>
+        </div>
+      </form>
+
+{% endblock content %}
+
+{% block script %}
+<script>
+    var $ = layui.$;
+    var form = layui.form;
+    form.on('submit(demo1)', function(data){
+        var index = layer.load(1);
+        $.post("{% url 'cmdb:PropertyCreate' category.id %}", data.field, function(res){
+            layer.close(index);
+            if (res.code){
+                layer.msg(res.msg, {icon: 1});
+                setTimeout("window.location.href= \"{% url 'cmdb:CategoryDetail' category.id %}\"", 2000);
+            }
+            else {
+                layer.alert('错误信息:'+ res.msg);
+            } 
+        });
+        return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+    });
+
+    form.verify({
+        code: function(value, item){ //value：表单的值、item：表单的DOM对象
+          if(!new RegExp("^[a-zA-Z_\u4e00-\u9fa5\\s·]+$").test(value)){
+            return '用户名不能有特殊字符';
+          }
+          if(/(^\_)|(\__)|(\_+$)/.test(value)){
+            return '用户名首尾不能出现下划线\'_\'';
+          }
+          if(/^\d+\d+\d$/.test(value)){
+            return '用户名不能全为数字';
+          }
+        }
+
+        //我们既支持上述函数式的方式，也支持下述数组的形式
+        //数组的两个值分别代表：[正则匹配、匹配不符时的提示文字]
+        //,pass: [
+        //  /^[\S]{6,12}$/
+        //  ,'密码必须6到12位，且不能出现空格'
+        //] 
+      });      
+
+</script>
+
+{% endblock script %}
