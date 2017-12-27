@@ -5,17 +5,17 @@
 <blockquote class="layui-elem-quote">
     <span class="layui-breadcrumb">
         <a>作业平台</a>
-        <a href="{% url 'ops:ScriptList' %}"><cite>脚本管理</cite></a>
+        <a href="{% url 'ops:StateList' %}"><cite>模块管理</cite></a>
     </span>
 </blockquote>
 
 {% csrf_token %}
 <div class="layui-inline">
     <div class="layui-input-inline">
-        <input type="text" id="keyword" name="keyword" placeholder="脚本名、脚本别名搜索脚本" autocomplete="off" class="layui-input" style="width: 300px">
+        <input type="text" id="keyword" name="keyword" placeholder="模块名搜索脚本" autocomplete="off" class="layui-input" style="width: 300px">
     </div>
 </div>
-<button type="button" class="layui-btn" id="test1"><i class="layui-icon">&#xe67c;</i>上传脚本</button>
+<button type="button" class="layui-btn" id="test1"><i class="layui-icon">&#xe67c;</i>上传模块</button>
 <hr>
 <table class="layui-hide" id="demo" lay-filter="demo"></table>
 
@@ -24,7 +24,6 @@
 {% block script %}
 
 <script type="text/html" id="barDemo">
-    <a class="layui-btn layui-btn-xs" lay-event="view">查看</a>
     <a class="layui-btn layui-btn-xs" lay-event="run">执行</a>
     <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">删除</a>
 </script>
@@ -34,14 +33,14 @@
     var layer = layui.layer;
     var tableIns = table.render({
         elem: '#demo'
-        ,url: '/ops/script/listAPI' //数据接口
+        ,url: '/ops/state/listAPI' //数据接口
         ,cols: [[
-        {field: 'code', title: '脚本名', width:150, fixed: true}
-        ,{field: 'name', title: '脚本别名', width:170, sort: true}
+        {field: 'code', title: '模块名', width:150, fixed: true}
+        // ,{field: 'name', title: '脚本别名', width:170, sort: true}
         ,{field: 'created_by', title: '创建者', width:120} 
         ,{field: 'create_time', title: '创建时间', minWidth: 150}
         ,{field: 'update_time', title: '上次修改时间', minWidth: 150}
-        ,{field: 'comment', title: '备注', minWidth:80}
+        // ,{field: 'comment', title: '备注', minWidth:80}
         ,{title: '操作', fixed: 'right', width:180, align:'center', toolbar: '#barDemo'}
         ]]
         ,page: true
@@ -61,7 +60,7 @@
                 content: "/ops/script/edit/" + data.id
             });
         } else if (obj.event === 'run') {
-            window.location.href = '/ops/script/run/' + data.id;
+            window.location.href = '/ops/state/run/' + data.id;
         } else if (obj.event === 'delete') {
             layer.confirm('确定删除？', function(index){
                 $.get('/ops/file/delete/' + data.id, function(res){
@@ -84,7 +83,7 @@
         //console.log(keyword)
         //执行重载
         tableIns.reload({
-            url: '/ops/script/listAPI',
+            url: '/ops/state/listAPI',
             where: {'keyword': keyword}
         });
     }
@@ -101,9 +100,9 @@
     var uploadInst = upload.render({
         elem: '#test1' //绑定元素
         ,url: "{% url 'ops:UploadFile' %}" //上传接口
-        ,data: {'csrfmiddlewaretoken': csrfmiddlewaretoken, 'file_type': 'script'}
+        ,data: {'csrfmiddlewaretoken': csrfmiddlewaretoken, 'file_type': 'state'}
         ,accept: 'file'
-        ,exts: 'py|sh|zip|rar|tar|tar.gz|gz|txt|log|xml|yaml|conf|ini'
+        ,exts: 'py|sh|zip|rar|tar|tar.gz|gz|txt|log|xml|yaml|conf|ini|sls'
         ,done: function(res, index, upload){
         //上传完毕回调
             if (res.code) {

@@ -20,7 +20,7 @@ def exacute_cmd(user, client, target, arg_list):
 		salt = SaltAPI(SALT_IP, SALT_USER, SALT_PASSWD, port=SALT_PORT)
 		result = salt.run(fun='cmd.run', target=target, arg_list=arg_list)
 		job = {'user':user, 'time':time.strftime("%Y-%m-%d %X", time.localtime()), 'client':client, \
-		'target':','.join(target), 'fun':'cmd.run', 'arg':arg_list, \
+		'target':target, 'fun':'cmd.run', 'arg':arg_list, \
 		'status':'', 'progress':'Finish', 'result': str(result), 'cjid':str(int(round(time.time() * 1000)))}
 		MONGO_CLIENT.devops.joblist.insert_one(job)
 	except Exception as e:
@@ -35,7 +35,7 @@ def push_file_to_minion(user, client, target, arg_list):
 		salt = SaltAPI(SALT_IP, SALT_USER, SALT_PASSWD, port=SALT_PORT)
 		result = salt.run(fun='cp.get_file', target=target, arg_list=arg_list)
 		job = {'user':user, 'time':time.strftime("%Y-%m-%d %X", time.localtime()), 'client':client, \
-		'target':','.join(target), 'fun':'push file to minion', 'arg':' '.join(arg_list), \
+		'target':target, 'fun':'push file to minion', 'arg':' '.join(arg_list), \
 		'status':'', 'progress':'Finish', 'result': str(result), 'cjid':str(int(round(time.time() * 1000)))}
 		MONGO_CLIENT.devops.joblist.insert_one(job)
 	except Exception as e:
@@ -50,10 +50,10 @@ def upload_file(file, destination="/tmp"):
 		for chunk in file.chunks():
 			f.write(chunk)  
 		f.close()
-		res = put_file(SALTMASTER_IP, SALTMASTER_USER, SALTMASTER_PASSWD, \
-		os.path.join(destination, file.name), "/srv/salt/files")
-		if res['err']:
-			error = res['err']
+		# res = put_file(SALTMASTER_IP, SALTMASTER_USER, SALTMASTER_PASSWD, \
+		# os.path.join(destination, file.name), "/srv/salt/files")
+		# if res['err']:
+		# 	error = res['err']
 	except Exception as e:
 		error = str(e)
 	return error
@@ -72,7 +72,7 @@ def get_file_from_minion(user, client, target, arg_list):
 		error = str(e)
 	return result, error
 
-def run_script(user, client, target, arg_list, async):
+def run_script(user, client, target, arg_list, async=False):
 	result = {}
 	error = ''
 	try:
@@ -81,18 +81,18 @@ def run_script(user, client, target, arg_list, async):
 		if async:
 			result = salt.run_async(fun='cmd.script', target=target, arg_list=arg_list)
 			job = {'user':user, 'time':time.strftime("%Y-%m-%d %X", time.localtime()), 'client':client, \
-			'target':','.join(target), 'fun':'cmd.script', 'arg':arg_list, 'progress':'', 'jid':result['jid']}
+			'target':target, 'fun':'cmd.script', 'arg':arg_list, 'progress':'', 'jid':result['jid']}
 		else:
 			result = salt.run(fun='cmd.script', target=target, arg_list=arg_list)
 			job = {'user':user, 'time':time.strftime("%Y-%m-%d %X", time.localtime()), 'client':client, \
-			'target':','.join(target), 'fun':'cmd.script', 'arg':arg_list, \
+			'target':target, 'fun':'cmd.script', 'arg':arg_list, \
 			'status':'', 'progress':'Finish', 'result': str(result), 'cjid':str(int(round(time.time() * 1000)))}
 		MONGO_CLIENT.devops.joblist.insert_one(job)
 	except Exception as e:
 		error = str(e)
 	return result, error
 
-def state_deploy(user, client, target, arg_list, async):
+def state_deploy(user, client, target, arg_list, async=False):
 	result = {}
 	error = ''
 	try:
@@ -101,7 +101,7 @@ def state_deploy(user, client, target, arg_list, async):
 		if async:
 			result = salt.run_async(fun='state.sls', target=target, arg_list=arg_list)
 			job = {'user':user, 'time':time.strftime("%Y-%m-%d %X", time.localtime()), 'client':client, \
-			'target':','.join(target), 'fun':'state.sls', 'arg':arg_list, 'progress':'', 'jid':result['jid']}
+			'target':target, 'fun':'state.sls', 'arg':arg_list, 'progress':'', 'jid':result['jid']}
 		else:
 			ret = salt.run(fun='state.sls', target=target, arg_list=arg_list)
 			result = {}
@@ -124,7 +124,7 @@ def state_deploy(user, client, target, arg_list, async):
 				tmp['summary'].update({'succeeded':succeeded, 'failed':failed, 'total_duration':total_duration})
 				result[key] = tmp
 			job = {'user':user, 'time':time.strftime("%Y-%m-%d %X", time.localtime()), 'client':client, \
-			'target':','.join(target), 'fun':'state.sls', 'arg':arg_list, \
+			'target':target, 'fun':'state.sls', 'arg':arg_list, \
 			'status':'', 'progress':'Finish', 'result': str(result), 'cjid':str(int(round(time.time() * 1000)))}
 		MONGO_CLIENT.devops.joblist.insert_one(job)
 	except Exception as e:

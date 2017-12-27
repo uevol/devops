@@ -9,6 +9,8 @@ reactor:
     - /srv/reactor/first_grains.sls
   - 'salt/minion/*/start':
     - /srv/reactor/getgrains.sls
+  - 'salt/auth':
+    - /srv/reactor/auto_sign.sls
 ```
 
 ## 配置采集grains的sls
@@ -27,5 +29,16 @@ getgrains.sls:
 first_grains:
   local.grains.items:
     - tgt: {{ data['id'] }}
+{% endif %}
+```
+
+## 配置自动签核
+```
+vi auto_sign.sls
+
+{% if 'act' in data and data['act'] == 'pend' %}
+minion_add:
+  wheel.key.accept:
+    - match: {{ data['id'] }}
 {% endif %}
 ```

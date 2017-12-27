@@ -1,0 +1,24 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>select host</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="{% static 'layui/css/layui.css' %}" media="all">
+  {% block css %} 
+  
+  {% endblock css %}
+</head>
+<body>
+<div class="layui-layout-body" style="margin: 5px">
+<pre class="layui-code" style="background: black; color:white; height: 100%;">
+<b style="color:aqua">{{minion}}:</b>
+{{context}}
+</pre>
+
+</div>      
+</body>
+</html>

@@ -6,7 +6,7 @@ certifi==2017.11.5
 cffi==1.11.2
 chardet==3.0.4
 cheroot==6.0.0
-CherryPy==3.2.3
+CherryPy==13.1.0
 coreapi==2.3.3
 coreschema==0.0.4
 cryptography==2.1.3

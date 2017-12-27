@@ -5,15 +5,15 @@
 <blockquote class="layui-elem-quote">
     <span class="layui-breadcrumb">
         <a>作业平台</a>
-        <a href= {% url 'ops:RemoteCmd' %}><cite>命令执行</cite></a>
+        <a href="{% url 'ops:ScriptRun' script.id %}"><cite>脚本执行</cite></a>
     </span>
 </blockquote>
 
-<form class="layui-form" action="{% url 'ops:RemoteCmd' %}" method="post">{% csrf_token %}
+<form class="layui-form" action="{% url 'ops:ScriptRun' script.id %}" method="post">{% csrf_token %}
     <div class="layui-form-item">
-        <label class="layui-form-label">命令 <span style="color: #FF5722">*</span></label>
+        <label class="layui-form-label">脚本 <span style="color: #FF5722">*</span></label>
         <div class="layui-input-block">
-        <input type="text" name="command" lay-verify="required" placeholder="请输入要执行的命令" class="layui-input" value="{{command}}">
+        <input type="text" name="script" lay-verify="required" placeholder="请输入要执行的脚本名" class="layui-input" value="{{script.code}}" disabled>
         </div>
     </div>
 
@@ -38,7 +38,7 @@
         {% for minion, return in res.result.items %}
 <pre class="layui-code" style="background: black; color:white; height: 100%;">
 <b style="color:aqua">{{minion}}:</b>
-{{return}}
+{{return.stdout}}
 </pre>
         {% endfor %}
     {% else %}
@@ -69,13 +69,13 @@
         return false; 
     }
 
-    //var form = layui.form;
-    //form.on('submit(demo1)', function(data){
-        // console.log(data.field) //当前容器的全部表单字段，名值对形式：{name: value}
-        //var index = layer.load(1);
-        //layer.close(index);
-        //return false;
-     //});
+    // var form = layui.form;
+    // form.on('submit(demo1)', function(data){
+    //     //console.log(data.field) //当前容器的全部表单字段，名值对形式：{name: value}
+    //     var index = layer.load(1);
+    //     //layer.close(index);
+    //     return false;
+    //  });
 
 </script>
         

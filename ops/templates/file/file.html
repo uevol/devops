@@ -35,7 +35,7 @@
     <div class="layui-form-item layui-form-text">
         <label class="layui-form-label">主机 <span style="color: #FF5722">*</span></label>
         <div class="layui-input-block">
-        <input type="text" name="hosts" id="hosts" lay-verify="required" placeholder="请输入内容主机salt客户端id, 或者点击下方按钮筛选主机" class="layui-input" value="{{ hosts | join:','}}">
+        <input type="text" name="hosts" id="hosts" lay-verify="required" placeholder="请输入内容主机salt客户端id, 或者点击下方按钮筛选主机" class="layui-input" value="{{ hosts }}">
         </div>
     </div>
 
@@ -91,7 +91,7 @@
     var uploadInst = upload.render({
         elem: '#test1' //绑定元素
         ,url: "{% url 'ops:UploadFile' %}" //上传接口
-        ,data: {'csrfmiddlewaretoken': csrfmiddlewaretoken}
+        ,data: {'csrfmiddlewaretoken': csrfmiddlewaretoken, 'file_type': 'other'}
         ,accept: 'file'
         ,exts: 'py|sh|zip|rar|tar|tar.gz|gz|txt|log|xml|yaml|conf|ini'
         ,done: function(res, index, upload){

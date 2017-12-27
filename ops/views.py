@@ -4,12 +4,13 @@ from __future__ import unicode_literals
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from cmdb.models import CiCategory
-from .utils import exacute_cmd,upload_file,push_file_to_minion,get_file_from_minion,run_script,state_deploy
+from .utils import exacute_cmd, upload_file, push_file_to_minion, get_file_from_minion, run_script, state_deploy
 import json
 from devops.settings import mongo
 import time
 from devops.paginator import my_paginator
 from .models import File
+from django.db.models import Q
 # Create your views here.
 
 def RemoteCmdView(request):
@@ -21,7 +22,7 @@ def RemoteCmdView(request):
                 client =  request.META['HTTP_X_FORWARDED_FOR']  
             else:
                 client = request.META['REMOTE_ADDR']
-            hosts = request.POST.getlist('hosts', [])
+            hosts = request.POST.get('hosts', [])
             command = request.POST.get('command', '') if request.POST.get('command', '') else 'hostname'
             result, error = exacute_cmd(user, client, hosts, command)
             if error:
@@ -59,7 +60,6 @@ def JobListViewAPI(request):
         dt_till = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(dt_till))
         dt_from = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(dt_from))
     if request.user.is_superuser:
-        print dt_from, dt_till
         jobs = mongo.devops.joblist.find({'time': {'$gte': dt_from, '$lte': dt_till}}).sort([('_id',-1)])
     else:
         jobs = mongo.salt.joblist.find({'user':request.user.username, 'time': {'$gte': dt_from, '$lte': dt_till} }).sort([('_id',-1)])
@@ -78,7 +78,7 @@ def JobResultView(request,cjid):
         result = {}
         for minion,ret in eval(job['result']).items():
             result[minion] = {'stderr':ret['stderr'],'stdout':ret['stdout']}
-        return render(request,'job_result/show_job_result.html',locals())
+        return render(request,'job_result/job_script_result.html',locals())
     elif job.has_key('fun') and job['fun'] == 'state.sls':
         result = eval(job['result'])
         for k,v in result.items():
@@ -88,7 +88,6 @@ def JobResultView(request,cjid):
         return render(request,'job_result/show_state_result.html',locals())
     else:
         job['result'] = eval(job['result'])
-        print job
         return render(request,'job_result/job_result.html',locals())   
 
 def PushFileVifew(request):
@@ -100,7 +99,7 @@ def PushFileVifew(request):
                 client =  request.META['HTTP_X_FORWARDED_FOR']  
             else:
                 client = request.META['REMOTE_ADDR']
-            hosts = request.POST.getlist('hosts', [])
+            hosts = request.POST.get('hosts', '')
             filename = request.POST.get('filename', '')
             remote_path = request.POST.get('remote_path', '')
             arg_list = [filename, remote_path, 'makedirs=True']
@@ -118,13 +117,23 @@ def UploadFileVifew(request):
     if request.method == "POST":
         try:
             file = request.FILES.get("file", None)
+            file_type = request.POST.get('file_type', '')
             user = request.user.username
             if request.META.has_key('HTTP_X_FORWARDED_FOR'):
                 client =  request.META['HTTP_X_FORWARDED_FOR']
             else:
                 client = request.META['REMOTE_ADDR']
-            myfile,updated = File.objects.update_or_create(code=file.name, name=file.name, defaults={'created_by':user})
-            res = upload_file(file)
+            if file_type == 'other':
+                myfile,updated = File.objects.update_or_create(code=file.name, name=file.name, defaults={'created_by':user})
+                res = upload_file(file, '/srv/salt/files')
+            elif file_type == 'script':
+                myfile,updated = File.objects.update_or_create(code=file.name, name=file.name, \
+                    file_type='script', defaults={'created_by':user})
+                res = upload_file(file, '/srv/salt/scripts')
+            else:
+                myfile,updated = File.objects.update_or_create(code=file.name, name=file.name, \
+                    file_type='state', defaults={'created_by':user})
+                res = upload_file(file, '/srv/salt/states')
             if res:
                 myfile.delete()
                 res = {'code': 0, 'msg': res}
@@ -134,18 +143,102 @@ def UploadFileVifew(request):
             res = {'code': 0, 'msg': str(e)}
     return JsonResponse(res)
 
-def ScripListView(request):
+def FileDeleteView(request, pk=''):
+    ''' Delete file '''
+    try:
+        File.objects.filter(pk=pk).delete()
+        res = {'code': 1, 'msg': '删除成功 ！'}
+    except Exception as e:
+        res = {'code': 0, 'msg': str(e)}
+    return JsonResponse(res)
+
+def ScriptListView(request):
     ''' script list '''
     return render(request, 'script/script_list.html', locals())
 
-def ScripListViewAPI(request):
+def ScriptListViewAPI(request):
     ''' script list  API'''
-    scripts = File.objects.all()
-    data = [{'name': script.name, 'script_name': script.script_name, 'created_by': script.created_by, 'comment': script.comment, \
-    'create_time': script.create_time, 'update_time': script.update_time} for script in scripts ]
+    keyword = request.GET.get('keyword', '')
+    if keyword:
+        q = Q(code__icontains=keyword) | Q(name__icontains=keyword)
+        scripts = File.objects.filter(file_type='script').filter(q)
+    else:
+        scripts = File.objects.filter(file_type='script')
+    data = [{'id': script.id, 'code': script.code, 'name': script.name, 'file_type': script.file_type, 'created_by': script.created_by, \
+    'comment': script.comment, 'create_time': script.create_time, 'update_time': script.update_time} for script in scripts ]
     page = request.GET.get('page', 1)
     limit = request.GET.get('limit', 10)
     count, data = my_paginator(data, page, limit)
       
     res = {'code': 0, 'msg': '', 'count': count, 'data': data}
     return JsonResponse(res)
+
+def ScriptEditView(request, pk=''):
+    try:
+        script = File.objects.get(pk=pk)
+        file = '/srv/salt/scripts/' + script.code
+        f = open(file,'r')
+        context = f.read()
+        f.close()
+    except Exception as e:
+        context = str(e)
+    return render(request,'script/show_script.html',locals())
+
+def ScriptRunView(request, pk=''):
+    script = File.objects.get(pk=pk)
+    if request.method == "POST":
+        try:
+            hosts = request.POST.get('hosts')
+            if request.META.has_key('HTTP_X_FORWARDED_FOR'):
+                client =  request.META['HTTP_X_FORWARDED_FOR']  
+            else:
+                client = request.META['REMOTE_ADDR']
+            user = request.user.username
+            result, error = run_script(user, client, hosts, script.code)
+            if error:
+                res = {'code': 0, 'msg': str(error)}
+            else:
+                res = {'code': 1, 'msg': '执行成功', "result": result}
+        except Exception as e:
+            res = {'code': 0, 'msg': str(error)}
+    return render(request,'script/run_script.html',locals())
+
+def StateListView(request):
+    ''' salt state list '''
+    return render(request, 'state/state_list.html')
+
+def StateListViewAPI(request):
+    ''' script list  API'''
+    keyword = request.GET.get('keyword', '')
+    if keyword:
+        q = Q(code__icontains=keyword) | Q(name__icontains=keyword)
+        scripts = File.objects.filter(file_type='state').filter(q)
+    else:
+        scripts = File.objects.filter(file_type='state')
+    data = [{'id': script.id, 'code': script.code, 'name': script.name, 'file_type': script.file_type, 'created_by': script.created_by, \
+    'comment': script.comment, 'create_time': script.create_time, 'update_time': script.update_time} for script in scripts ]
+    page = request.GET.get('page', 1)
+    limit = request.GET.get('limit', 10)
+    count, data = my_paginator(data, page, limit)
+      
+    res = {'code': 0, 'msg': '', 'count': count, 'data': data}
+    return JsonResponse(res)
+
+def StateRunView(request, pk=''):
+    script = File.objects.get(pk=pk)
+    if request.method == "POST":
+        try:
+            hosts = request.POST.get('hosts')
+            if request.META.has_key('HTTP_X_FORWARDED_FOR'):
+                client =  request.META['HTTP_X_FORWARDED_FOR']  
+            else:
+                client = request.META['REMOTE_ADDR']
+            user = request.user.username
+            result, error = state_deploy(user, client, hosts, script.code)
+            if error:
+                res = {'code': 0, 'msg': str(error)}
+            else:
+                res = {'code': 1, 'msg': '执行成功', "result": result}
+        except Exception as e:
+            res = {'code': 0, 'msg': str(error)}
+    return render(request,'script/run_script.html',locals())
