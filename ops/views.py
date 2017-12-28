@@ -11,6 +11,7 @@ import time
 from devops.paginator import my_paginator
 from .models import File
 from django.db.models import Q
+import collections
 # Create your views here.
 
 def RemoteCmdView(request):
@@ -85,7 +86,7 @@ def JobResultView(request,cjid):
             process = collections.OrderedDict(sorted(v['process'].iteritems(),key=lambda x:x[0]))
             summary = v['summary']
             result[k] = {'process':process,'summary':summary}
-        return render(request,'job_result/show_state_result.html',locals())
+        return render(request,'job_result/job_state_result.html',locals())
     else:
         job['result'] = eval(job['result'])
         return render(request,'job_result/job_result.html',locals())   
@@ -102,7 +103,8 @@ def PushFileVifew(request):
             hosts = request.POST.get('hosts', '')
             filename = request.POST.get('filename', '')
             remote_path = request.POST.get('remote_path', '')
-            arg_list = [filename, remote_path, 'makedirs=True']
+            # arg_list = [filename, remote_path, 'makedirs=True']
+            arg_list = [filename, remote_path]
             result, error = push_file_to_minion(user, client, hosts, arg_list)
             if error:
                 res = {'code': 0, 'msg': str(error)}
@@ -234,11 +236,12 @@ def StateRunView(request, pk=''):
             else:
                 client = request.META['REMOTE_ADDR']
             user = request.user.username
-            result, error = state_deploy(user, client, hosts, script.code)
+            res, error = state_deploy(user, client, hosts, script.code.split('.')[0])
             if error:
-                res = {'code': 0, 'msg': str(error)}
+                result = {'code': 0, 'msg': str(error)}
             else:
-                res = {'code': 1, 'msg': '执行成功', "result": result}
+                result = {'code': 1, 'msg': '执行成功', "result": res}
         except Exception as e:
-            res = {'code': 0, 'msg': str(error)}
-    return render(request,'script/run_script.html',locals())
+            result = {'code': 0, 'msg': str(error)}
+        print result, '========='
+    return render(request,'state/run_state.html',locals())

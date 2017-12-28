@@ -61,6 +61,7 @@
             });
         } else if (obj.event === 'run') {
             window.location.href = '/ops/state/run/' + data.id;
+            console.log('test');
         } else if (obj.event === 'delete') {
             layer.confirm('确定删除？', function(index){
                 $.get('/ops/file/delete/' + data.id, function(res){

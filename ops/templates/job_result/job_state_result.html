@@ -1,0 +1,42 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1"  charset="utf-8">
+
+    <!-- Bootstrap core CSS -->
+    <link href="{%static 'css/bootstrap.min.css'%}" rel="stylesheet">
+
+  </head>
+
+  <body>
+    <div class="col-lg-12">
+                  {% for minion,return in result.items %}
+                  <pre class="layui-code" style="background: black; color:white; height: 100%;">
+<b style="color:aqua">{{minion}}:</b>
+                      {% for key,value in return.process.items %}
+Step {{key}} | {{value.id}}:
+{{'Name'|rjust:'15'}}: {{value.name}}
+{{'Function'|rjust:'15'}}: {{value.fun}}
+{{'Result'|rjust:'15'}}: {{value.result}}
+{{'Comment'|rjust:'15'}}: {{value.comment}}
+{{'Started'|rjust:'15'}}: {{value.start_time}}
+{{'Duration'|rjust:'15'}}: {{value.duration}} ms
+{{'Stderr'|rjust:'15'}}: {{value.changes.stderr}}
+{{'Stdout'|rjust:'15'}}: 
+{{value.changes.stdout}}
+                      {% endfor %}
+
+Summary:
+{{'Succeeded'|rjust:'15'}}: {{return.summary.succeeded}}
+{{'Failed'|rjust:'15'}}: {{return.summary.failed}}
+{{'Total_Duration'|rjust:'15'}}: {{return.summary.total_duration}} ms
+                  </pre>
+                {% endfor %}
+    </div>
+    <!-- js placed at the end of the document so the pages load faster -->
+    <script src="{%static 'js/jquery.js'%}"></script>
+    <script src="{%static 'js/bootstrap.min.js'%}"></script>
+
+  </body>
+</html>

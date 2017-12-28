@@ -26,27 +26,43 @@
 
     <div class="layui-form-item">
         <div class="layui-input-block">
-            <button class="layui-btn" lay-submit="" lay-filter="demo1">开始执行</button>
+            <button class="layui-btn" type="submit">开始执行</button>
             <button class="layui-btn" type="button" onclick="select_host()">筛选主机</button>
             <button type="reset" class="layui-btn layui-btn-primary">重置</button>
         </div>
     </div>
 </form>
 <hr>
-{% if res %}
-    {% if res.code %}
-        {% for minion, return in res.result.items %}
-<pre class="layui-code" style="background: black; color:white; height: 100%;">
+    {% if result.code %}
+       
+
+         {% for minion,return in result.result.items %}
+            <pre class="layui-code" style="background: black; color:white; height: 100%;">
 <b style="color:aqua">{{minion}}:</b>
-{{return.stdout}}
-</pre>
-        {% endfor %}
+                {% for key,value in return.process.items %}
+Step {{key}} | {{value.id}}:
+{{'Name'|rjust:'15'}}: {{value.name}}
+{{'Function'|rjust:'15'}}: {{value.fun}}
+{{'Result'|rjust:'15'}}: {{value.result}}
+{{'Comment'|rjust:'15'}}: {{value.comment}}
+{{'Started'|rjust:'15'}}: {{value.start_time}}
+{{'Duration'|rjust:'15'}}: {{value.duration}} ms
+{{'Stderr'|rjust:'15'}}: {{value.changes.stderr}}
+{{'Stdout'|rjust:'15'}}: 
+{{value.changes.stdout}}
+                              {% endfor %}
+
+Summary:
+{{'Succeeded'|rjust:'15'}}: {{return.summary.succeeded}}
+{{'Failed'|rjust:'15'}}: {{return.summary.failed}}
+{{'Total_Duration'|rjust:'15'}}: {{return.summary.total_duration}} ms
+                </pre>
+                {% endfor %}
     {% else %}
-<pre class="layui-code" style="background: black;color:white;height:100%;">
-<b style="color:rgb(255, 0, 0)">{{res.msg}}</b>
-</pre>   
+    <pre class="layui-code" style="background: black;color:white;height:100%;">
+<b style="color:rgb(255, 0, 0)">{{result.msg}}</b>
+    </pre>   
     {% endif %}
-{% endif %}
 
 
 {% endblock content %}
