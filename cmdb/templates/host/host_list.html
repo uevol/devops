@@ -17,7 +17,7 @@
 
 <button class="layui-btn" id="show_form">高级搜索</button>
 <a href="{% url 'cmdb:HostAdd' %}"><button class="layui-btn">添加主机</button></a>
-{% comment %} <a href="#"><button class="layui-btn">更多操作</button></a> {% endcomment %}
+<button class="layui-btn layui-btn-disabled" id='patch_edit' onclick="patch_edit()">批量编辑</button>
 <a href="{% url 'cmdb:setTable' %}">
     <button class="layui-btn layui-btn-primary hover" style="float:right; padding: 0px 7px;" id="setting"><i class="layui-icon">&#xe614;</i></button>
 </a>
@@ -88,16 +88,29 @@
 </script>
 
 <script>
+    var $ = layui.$;
     var table = layui.table;
 
     table.on('checkbox(demo)', function(obj){
-        console.log(obj)
+        //console.log(obj)
+        var checkStatus = table.checkStatus('idTest'); //test即为基础参数id对应的值
+        if (checkStatus.data.length > 0){
+            $("#patch_edit").removeClass("layui-btn-disabled");
+        } else {
+            $("#patch_edit").addClass("layui-btn-disabled");
+        }
+        //console.log(checkStatus.data) //获取选中行的数据
+        //console.log(checkStatus.data.length) //获取选中行数量，可作为是否有选中行的条件
+        //console.log(checkStatus.isAll ) //表格是否全选
+
         });
+
+
 
     //监听工具条
     table.on('tool(demo)', function(obj){
         var data = obj.data;
-        console.log(data);
+        //console.log(data);
         if(obj.event === 'del'){
             layer.confirm('确定删除？', function(index){
                 $.get('/cmdb/host/delete/' + data.server_id, function(res){
@@ -118,7 +131,7 @@
         }
     });
 
-    var $ = layui.$, active = {
+    var active = {
             reload: function(){
                 var keyword = $('#keyword');
             
@@ -146,16 +159,47 @@
           layer.close(tipsi);
      });
 
-     $('#show_form').click(function(){
+    function patch_edit() {
+        layer.open({
+            type: 2,
+            title: ' 批量编辑主机信息',
+            //shadeClose: true,
+            //shade: true,
+            maxmin: true, //开启最大化最小化按钮
+            area: ['50%', '35%'],
+            content: "{% url 'cmdb:HostPatchUpdate' %}", 
+            //这里content是一个URL，如果你不想让iframe出现滚动条，你还可以content: ['http://sentsin.com', 'no']
+            success: function(layero, index){
+                var body = layer.getChildFrame('body',index);//建立父子联系
+                var iframeWin = window[layero.find('iframe')[0]['name']];
+                var checkStatus = table.checkStatus('idTest');
+                //console.log(checkStatus.data)
+                var hosts = [];
+                for (x in checkStatus.data) {
+                    hosts.push(checkStatus.data[x].server_id);
+                }
+                //console.log(hosts);
+                var inputList = body.find('input');
+                //console.log(inputList[0]);
+                $(inputList[3]).val(hosts);
+            },
+            end: function() {
+                window.location.reload();
+            }
+        });
+    }
+
+    $('#show_form').click(function(){
         document.getElementById("search_form").style.display="inline";
-     });
+    });
 
-     $('#hidden_form').click(function(){
+    $('#hidden_form').click(function(){
         document.getElementById("search_form").style.display="none";
-     });
+        window.location.reload();
+    });
 
-     var form = layui.form;
-     form.on('submit(demo1)', function(data){
+    var form = layui.form;
+    form.on('submit(demo1)', function(data){
         // console.log(data.field) //当前容器的全部表单字段，名值对形式：{name: value}
 
         //执行重载
@@ -164,7 +208,7 @@
             where: data.field
         });
         return false;
-     });
+    });
 
 </script>
         

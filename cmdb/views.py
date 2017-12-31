@@ -338,3 +338,30 @@ def HostAddView(request):
     else:
         url = "http://%s:%s/"%(ftp.host, ftp.port)
     return render(request, 'host/add_host.html', locals())
+
+@permission_check(['u_host'])
+def HostPatchUpdateView(request):
+    if request.method == "POST":
+        try:
+            field = request.POST.get('field', '')
+            value = request.POST.get('value', '')
+            hosts = request.POST.get('hosts', '').split(',')
+            code, value_type = field.split('-')
+            # print value, hosts, code, value_type
+            if value_type == 'array':
+                d = {'$push': {code: value}}
+            else:
+                d = {'$set': {code: value}}
+            mongo.devops.host.update_many({'server_id': {'$in': hosts}}, d)
+            res = {'code': 1, 'msg': '更新成功 ！'}
+        except Exception as e:
+            res = {'code': 0, 'msg': str(e)}
+        return JsonResponse(res)
+    category = get_object_or_404(CiCategory, code='host')
+    items = category.ciproperty_set.all()
+    edit_items = items.filter(is_edit=True)
+    return render(request, 'host/patch_update.html', locals())
+
+
+
+

@@ -37,4 +37,5 @@ urlpatterns = [
     url(r'^host/zabbix/(?P<ip>.+)/$', views.zabbix, name='zabbix'),
     url(r'^host/zabbix_refresh/$', views.zabbix_refresh, name='zabbix_refresh'),
     url(r'^host/add/$', views.HostAddView, name='HostAdd'),
+    url(r'^host/patchUpdate/$', views.HostPatchUpdateView, name='HostPatchUpdate'),
 ]
