@@ -50,6 +50,9 @@ def upload_file(file, destination="/tmp"):
 		for chunk in file.chunks():
 			f.write(chunk)  
 		f.close()
+		if tar in file.name:
+			os.system('tar xvf %s -C %s'%(os.path.join(destination, file.name), destination))
+			os.remove(os.path.join(destination, file.name))
 		# res = put_file(SALTMASTER_IP, SALTMASTER_USER, SALTMASTER_PASSWD, \
 		# os.path.join(destination, file.name), "/srv/salt/files")
 		# if res['err']:

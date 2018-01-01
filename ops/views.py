@@ -12,8 +12,10 @@ from devops.paginator import my_paginator
 from .models import File
 from django.db.models import Q
 import collections
+from devops.decorators import permission_check
 # Create your views here.
 
+@permission_check(['run_cmd'])
 def RemoteCmdView(request):
     ''' remote exacute command '''
     if request.method == "POST":
@@ -91,6 +93,7 @@ def JobResultView(request,cjid):
         job['result'] = eval(job['result'])
         return render(request,'job_result/job_result.html',locals())   
 
+@permission_check(['push_file'])
 def PushFileVifew(request):
     ''' push file to remote host(s) by saltstack '''
     if request.method == "POST":
@@ -103,8 +106,8 @@ def PushFileVifew(request):
             hosts = request.POST.get('hosts', '')
             filename = request.POST.get('filename', '')
             remote_path = request.POST.get('remote_path', '')
-            # arg_list = [filename, remote_path, 'makedirs=True']
-            arg_list = [filename, remote_path]
+            arg_list = [filename, remote_path, 'makedirs=True']
+            # arg_list = [filename, remote_path]
             result, error = push_file_to_minion(user, client, hosts, arg_list)
             if error:
                 res = {'code': 0, 'msg': str(error)}
@@ -114,6 +117,7 @@ def PushFileVifew(request):
             res = {'code': 0, 'msg': str(error)}
     return render(request, 'file/file.html', locals())
 
+@permission_check(['upload_file'])
 def UploadFileVifew(request):
     ''' Upload file to remote salt-master server '''
     if request.method == "POST":
@@ -145,6 +149,7 @@ def UploadFileVifew(request):
             res = {'code': 0, 'msg': str(e)}
     return JsonResponse(res)
 
+@permission_check(['delete_file'])
 def FileDeleteView(request, pk=''):
     ''' Delete file '''
     try:
@@ -226,6 +231,7 @@ def StateListViewAPI(request):
     res = {'code': 0, 'msg': '', 'count': count, 'data': data}
     return JsonResponse(res)
 
+@permission_check(['run_state'])
 def StateRunView(request, pk=''):
     script = File.objects.get(pk=pk)
     if request.method == "POST":
@@ -243,5 +249,4 @@ def StateRunView(request, pk=''):
                 result = {'code': 1, 'msg': '执行成功', "result": res}
         except Exception as e:
             result = {'code': 0, 'msg': str(error)}
-        print result, '========='
     return render(request,'state/run_state.html',locals())

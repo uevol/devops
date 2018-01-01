@@ -59,7 +59,20 @@ perms_list = [
                 {'name': '添加主机', 'code': 'c_host'},
                 {'name': '查询主机', 'code': 'r_host'},
                 {'name': '更新主机', 'code': 'u_host'},
-                {'name': '删除主机', 'code': 'd_host'}
+                {'name': '删除主机', 'code': 'd_host'},
+                {'name': '导入主机', 'code': 'import_host'},
+                {'name': '导出主机', 'code': 'export_host'}
+            ]
+    },
+    {
+        '作业平台':
+            [
+                {'name': '命令执行', 'code': 'run_cmd'},
+                {'name': '文件传输', 'code': 'push_file'},
+                {'name': '上传文件', 'code': 'upload_file'},
+                {'name': '删除文件', 'code': 'delete_file'},
+                {'name': '执行脚本', 'code': 'run_script'},
+                {'name': '执行模块', 'code': 'run_state'}
             ]
     }
 ]

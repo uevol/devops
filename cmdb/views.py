@@ -308,7 +308,7 @@ def HostUpdateView(request, server_id=''):
     users = (user.username for user in User.objects.all())
     admin_item = items.get(code='admin')
     # for tags
-    tags = ','.join(host.get('tags', []))
+    tags = ';'.join(host.get('tags', []))
     tags_item = items.get(code='tags')
     # for others
     not_edit_items = items.filter(is_edit=False)
