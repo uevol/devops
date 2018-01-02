@@ -13,6 +13,7 @@ from .models import File
 from django.db.models import Q
 import collections
 from devops.decorators import permission_check
+from devops.settings import scheduler
 # Create your views here.
 
 @permission_check(['run_cmd'])
@@ -65,7 +66,7 @@ def JobListViewAPI(request):
     if request.user.is_superuser:
         jobs = mongo.devops.joblist.find({'time': {'$gte': dt_from, '$lte': dt_till}}).sort([('_id',-1)])
     else:
-        jobs = mongo.salt.joblist.find({'user':request.user.username, 'time': {'$gte': dt_from, '$lte': dt_till} }).sort([('_id',-1)])
+        jobs = mongo.devops.joblist.find({'user':request.user.username, 'time': {'$gte': dt_from, '$lte': dt_till} }).sort([('_id',-1)])
     data = [{'user': job['user'], 'time': job['time'], 'client': job['client'], 'target': job['target'], 'fun': job['fun'], \
     'arg': job['arg'], 'progress': job['progress'], 'cjid': job['cjid'], 'status': job['status'] } for job in jobs ]
     page = request.GET.get('page', 1)
@@ -250,3 +251,86 @@ def StateRunView(request, pk=''):
         except Exception as e:
             result = {'code': 0, 'msg': str(error)}
     return render(request,'state/run_state.html',locals())
+
+def CronListView(request):
+    return render(request,'cron/cron_list.html',locals())
+
+def CronListAPIView(request):
+    job_instances = scheduler.get_jobs()
+    data = [{'id':job.id, 'cron_string':job.meta['cron_string'], 'targets':','.join(job.args[2]), \
+    'arg':job.args[3], 'created_at':job.created_at.strftime("%Y-%m-%d %H:%M:%S"), \
+    'last_exacuted':job.ended_at.strftime("%Y-%m-%d %H:%M:%S") if job.ended_at else ''} for job in job_instances]
+    
+    page = request.GET.get('page', 1)
+    limit = request.GET.get('limit', 10)
+    count, data = my_paginator(data, page, limit)
+      
+    res = {'code': 0, 'msg': '', 'count': count, 'data': data}
+    return JsonResponse(res)
+
+def CronAddView(request):
+    if request.method == 'POST':
+        cron_string = request.POST.get('cron_string', '')
+        cron_type = request.POST.get('cron_type', '')
+        try:
+            user = 'cron'
+            if request.META.has_key('HTTP_X_FORWARDED_FOR'):
+                client =  request.META['HTTP_X_FORWARDED_FOR']  
+            else:
+                client = request.META['REMOTE_ADDR']
+            arg_list = request.POST.get('cmd', '') if request.POST.get('cmd', '') else 'echo hello'
+            hosts = request.POST.get('hosts', '')
+            target = hosts.split(',')
+            print cron_string, cron_type, arg_list, hosts
+            if cron_type == 'command':
+                job = scheduler.cron(cron_string, func=exacute_cmd, args=[user, client, target, arg_list], repeat=None, queue_name='default')
+            else:
+                job = scheduler.cron(cron_string, func=run_script, args=[user, client, target, arg_list, True], repeat=None, queue_name='default')
+            if job:
+                res = {'code': 1, 'msg': '任务创建成功 ！'}
+            else:
+                res = {'code': 0, 'msg': '任务创建失败 ！'}
+        except Exception as e:
+            res = {'code': 0, 'msg': str(e)}
+        return JsonResponse(res)
+    return render(request,'cron/cron_add.html',locals())
+
+def CronDeleteView(request,job_id):
+    try:
+        scheduler.cancel(job_id)
+        res = {'code': 1, 'msg': '定时任务已经删除'}
+    except Exception as e:
+        res = {'code': 0, 'msg': str(e)}
+    return JsonResponse(res)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

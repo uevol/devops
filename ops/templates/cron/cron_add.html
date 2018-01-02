@@ -1,0 +1,89 @@
+{% extends 'ifram.html' %}
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>作业平台</a>
+        <a href="{% url 'ops:CronList' %}"><cite>定时任务</cite></a>
+        <a href="{% url 'ops:CronAdd' %}">添加任务</a>
+    </span>
+</blockquote>
+
+<form class="layui-form" action="#" method="">{% csrf_token %}
+    <div class="layui-form-item">
+        <label class="layui-form-label">任务类型 <span style="color: #FF5722">*</span></label>
+        <div class="layui-input-block">
+          <input type="radio" name="cron_type" value="command" title="命令" checked="">
+          <input type="radio" name="cron_type" value="script" title="脚本">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">时间格式 <span style="color: #FF5722">*</span></label>
+        <div class="layui-input-block">
+            <input class="layui-input" name="cron_string" lay-verify="required" type="text" placeholder="crontab格式: * * * * * (分 时 日 月 周)">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">命令参数 <span style="color: #FF5722">*</span></label>
+        <div class="layui-input-block">
+            <input class="layui-input" name="cmd" lay-verify="required" type="text" placeholder="执行命令,如: echo hello; 执行脚本,请填写脚本管理菜单中存在的脚本名,如test.sh">
+        </div>
+    </div>
+
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">主机 <span style="color: #FF5722">*</span></label>
+        <div class="layui-input-block">
+            <input type="text" name="hosts" id="hosts" lay-verify="required" placeholder="请输入内容主机salt客户端id, 或者点击下方按钮筛选主机" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit="" lay-filter="demo1">创建任务</button>
+            <button class="layui-btn" type="button" onclick="select_host()">筛选主机</button>
+            <button type="button" class="layui-btn layui-btn-primary" onclick="javascript:window.history.back()">取消</button>
+        </div>
+    </div>
+</form>
+
+{% endblock content %}
+
+{% block script %}
+
+<script>
+    var $ = layui.$;
+    var layer = layui.layer;
+    function select_host() {
+        layer.open({
+            type: 2,
+            title: '筛选主机',
+            maxmin: true, //开启最大化最小化按钮
+            area: ['90%', '60%'],
+            content: "{% url 'ops:SelectHost' %}"  //这里content是一个URL，如果你不想让iframe出现滚动条，你还可以content: ['http://sentsin.com', 'no']
+        });
+    }
+
+    var form = layui.form;
+    form.on('submit(demo1)', function(data){
+        var index = layer.load(1);
+        $.post("{% url 'ops:CronAdd' %}", data.field, function(res){
+            layer.close(index);
+            if (res.code){
+                layer.msg(res.msg, {icon: 1});
+                setTimeout("window.location.href= \"{% url 'ops:CronList' %}\"", 2000);
+            }
+            else {
+                layer.alert('错误信息:'+ res.msg);
+            } 
+        });
+        return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+    });
+
+</script>
+        
+{% endblock script %}
+    
+

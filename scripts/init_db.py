@@ -367,3 +367,13 @@ for category in ci_c_list:
         # print str(e)
         # break
 
+
+from devops.settings import scheduler
+from ops.jobs import check_minion_status,update_grains
+try:
+    job1 = scheduler.cron('*/10 * * * *',func=check_minion_status,args=['','',['all'],'checking minions status'],repeat=None,queue_name='default')
+    print job1
+    job2 = scheduler.cron('0 0 */3 * *',func=update_grains,args=['','',['all'],'updating grains'],repeat=None,queue_name='default')
+    print job2
+except Exception as e:
+    print e

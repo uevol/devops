@@ -1,0 +1,66 @@
+{% extends 'ifram.html' %}
+
+{% block content %}
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>作业平台</a>
+        <a href="{% url 'ops:CronList' %}"><cite>定时任务</cite></a>
+    </span>
+</blockquote>
+
+<a href="{% url 'ops:CronAdd' %}"><button type="button" class="layui-btn" id="test1">添加任务</button></a>
+<hr>
+<table class="layui-hide" id="demo" lay-filter="demo"></table>
+
+{% endblock content %}
+
+{% block script %}
+
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">删除</a>
+</script>
+
+<script>
+    var table = layui.table;
+    var layer = layui.layer;
+    var $ = layui.$;
+    var tableIns = table.render({
+        elem: '#demo'
+        ,url: '/ops/cron/listAPI' //数据接口
+        ,cols: [[
+        {field: 'id', title: '任务ID', width:150, fixed: true}
+        ,{field: 'cron_string', title: '时间周期', width:170, sort: true}
+        ,{field: 'targets', title: '执行对象', width:120} 
+        ,{field: 'arg', title: '参数', minWidth: 150}
+        ,{field: 'created_at', title: '创建时间', minWidth: 150}
+        ,{field: 'last_exacuted', title: '上次执行时间', minWidth:80}
+        ,{title: '操作', fixed: 'right', width:80, align:'center', toolbar: '#barDemo'}
+        ]]
+        ,page: true
+    });
+
+    //监听工具条
+    table.on('tool(demo)', function(obj){
+        var data = obj.data;
+        if (obj.event === 'delete') {
+            layer.confirm('确定删除？', function(index){
+                //console.log(data.id);
+                $.get('/ops/cron/delete/' + data.id, function(res){
+                    if (res.code) {
+                        obj.del();
+                        layer.msg(res.msg, {icon: 1});
+                    }
+                    else {
+                        layer.alert('错误信息:'+ res.msg);
+                    }
+                });
+                layer.close(index);
+            });
+        }
+    });
+
+</script>
+        
+{% endblock script %}
+    
+

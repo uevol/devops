@@ -17,6 +17,7 @@ from django.conf.urls import url, include
 from . import views
 
 urlpatterns = [
+    url(r'^django-rq/', include('django_rq.urls')),
     url(r'^$', views.BaseView.as_view(), name='dashboard'),
     url(r'^login/', views.login, name='login'),
     url(r'^logout/', views.logout, name='logout'),

@@ -32,4 +32,8 @@ urlpatterns = [
     url(r'^state/$', views.StateListView, name="StateList"),
     url(r'^state/listAPI/', views.StateListViewAPI, name="StateListView"),
     url(r'^state/run/(?P<pk>\d+)/$', views.StateRunView, name="StateRun"),
+    url(r'^cron/$', views.CronListView, name="CronList"),
+    url(r'^cron/listAPI/', views.CronListAPIView, name="CronListAPI"),
+    url(r'^cron/add/$', views.CronAddView, name="CronAdd"),
+    url(r'^cron/delete/(?P<job_id>.+)/$', views.CronDeleteView, name="CronDelete"),   
 ]

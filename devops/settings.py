@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'cmdb',
     'dashboard',
     'ops',
+    'django_rq',
 ]
 
 MIDDLEWARE = [
@@ -92,7 +93,6 @@ try:
 except ImportError:
     # For Python 3
     from urllib.parse import quote_plus
-
 MONGO_HOST, MONGO_PORT, MONGO_USER, MONGO_PASS = '127.0.0.1', 27017, '', ''
 if MONGO_USER and MONGO_PASS:
    MONGO_USER, MONGO_PASS = quote_plus(MONGO_USER), quote_plus(MONGO_PASS)
@@ -106,9 +106,69 @@ ZABBIX_SERVER, ZABBIX_PORT, ZABBIX_PATH, ZABBIX_USER, ZABBIX_PASS = '127.0.0.1',
 
 # config salt master system
 SALTMASTER_IP, SALTMASTER_PORT, SALTMASTER_USER, SALTMASTER_PASSWD = "192.168.3.167", '22', 'root', 'R00t@123'
-
 # config salt_api
 SALT_IP, SALT_PORT, SALT_USER, SALT_PASSWD = '127.0.0.1', '8080', 'salt_api', 'salt_api'
+
+
+# config for rq_scheduler
+# from redis import Redis
+# from rq_scheduler import Scheduler
+# scheduler = Scheduler(connection=Redis())
+
+# config for django_rq 
+RQ_QUEUES = {
+    'default': {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+        # 'PASSWORD': 'some-password',
+        'DEFAULT_TIMEOUT': 360,
+    },
+    'high': {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+        # 'PASSWORD': 'some-password',
+        'DEFAULT_TIMEOUT': 120,
+    },
+    'low': {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+        # 'PASSWORD': 'some-password',
+        'DEFAULT_TIMEOUT': 360,
+    }
+}
+
+import django_rq
+# get scheduler for rq_scheduler
+scheduler = django_rq.get_scheduler('default')
+
+# config for rq_log
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        "rq_console": {
+            "format": "%(asctime)s %(message)s",
+            "datefmt": "%H:%M:%S",
+        },
+    },
+    'handlers': {
+        "rq_console": {
+            "level": "ERROR",
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            'filename': os.path.join(BASE_DIR, 'logs/rqworker.log'),
+            "formatter": "rq_console",
+        },
+    },
+    'loggers': {
+        "rq.worker": {
+            "handlers": ["rq_console"],
+            "level": "DEBUG"
+        },
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
