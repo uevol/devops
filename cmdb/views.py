@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import sys    
+reload(sys)   
+sys.setdefaultencoding('utf8')
+
 from django.shortcuts import render, get_object_or_404, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import CiCategory, CiProperty
 import json
 from devops.paginator import my_paginator
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.db.models import Q
 from devops.settings import mongo
 from json2html import *
@@ -16,7 +20,9 @@ from django.contrib.auth.models import User, Group
 from admins.models import Service
 from devops.decorators import permission_check
 from django.contrib.auth.decorators import login_required
-
+import csv
+import codecs
+import re
 # Create your views here.
 @permission_check(['r_model'])
 def CategoryListView(request):
@@ -361,6 +367,90 @@ def HostPatchUpdateView(request):
     items = category.ciproperty_set.all()
     edit_items = items.filter(is_edit=True)
     return render(request, 'host/patch_update.html', locals())
+
+@permission_check(['export_host'])
+def HostExportView(request):
+    ids = request.POST.get('ids','').split(',')
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="hosts.csv"'
+    response.write(codecs.BOM_UTF8)
+    writer = csv.writer(response)
+    hosts = mongo.devops.host.find({'server_id': {'$in': ids}})
+    category = get_object_or_404(CiCategory, code='host')
+    items = category.ciproperty_set.filter(show_in_table=True)
+    header, codes = [], []
+    for item in items:
+        header.append(item.name.encode('utf-8'))
+        codes.append(item.code)
+    writer.writerow(codes)
+    writer.writerow(header)
+    for host in hosts:
+        try:
+            row = ['['+','.join(host.get(code, ""))+']' if isinstance(host.get(code, ""), list) else host.get(code, "") for code in codes]
+            writer.writerow(row)
+        except Exception as e:
+            # raise e
+            continue
+    return response
+
+@permission_check(['import_host'])
+def HostImportView(request):
+    if request.method == "POST":
+        myFile = request.FILES.get("file", None)
+        f = csv.reader(myFile)
+        failed_hosts = []
+        header = []
+        for line in f:
+            if f.line_num == 1:
+                header = line
+                continue
+            elif f.line_num == 2:
+                continue
+            else:
+                d = {}
+                for code, value in zip(header, line):
+                    if '[' in value:
+                        d[code] = value.strip('[]').split(',')
+                    else: 
+                        d[code] = value
+                try:
+                    mongo.devops.host.update_one({'server_id': line[0]}, {'$set': d}, upsert=True)
+                except Exception as e:
+                    failed_hosts.append({line[0]: str(e)})
+                    continue
+        if failed_hosts:
+            res = {'code': 0, 'msg': '导入完成,失败记录如下：', 'failed_hosts': failed_hosts}
+        else:
+            res = {'code': 1, 'msg': '导入完成'}
+        return JsonResponse(res)
+    return render(request, 'host/host_import.html', locals())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1,0 +1,70 @@
+{% extends 'ifram.html' %}
+
+{% block content %}
+
+<blockquote class="layui-elem-quote">
+    <span class="layui-breadcrumb">
+        <a>资产管理</a>
+        <a href="{% url 'cmdb:HostList' %}"><cite>主机管理</cite></a>
+        <a href="{% url 'cmdb:HostImport' %}"><cite>导入</cite></a>
+    </span>
+</blockquote>
+
+<form class="layui-form" action="#" method="">{% csrf_token %}
+    <div class="layui-row">
+        <div class="layui-col-xs9 layui-col-sm9 layui-col-md9">
+            <div class="layui-form-item">
+                <label class="layui-form-label">文件 <span style="color: #FF5722">*</span></label>
+                <div class="layui-input-block">
+                    <button type="button"  id="test1" class="layui-btn"><i class="layui-icon">&#xe67c;</i>选择文件</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" type="button" id="upload">开始上传</button>
+            <button type="button" class="layui-btn layui-btn-primary" onclick="javascript:window.history.back()">取消</button>
+        </div>
+    </div>
+</form>
+<hr>
+{% endblock content %}
+
+{% block script %}
+
+<script>
+    var $ = layui.$;
+
+    var upload = layui.upload;
+    //执行实例
+    var csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();
+    var uploadInst = upload.render({
+        elem: '#test1' //绑定元素
+        ,url: "{% url 'cmdb:HostImport' %}" //上传接口
+        ,data: {'csrfmiddlewaretoken': csrfmiddlewaretoken}
+        ,accept: 'file'
+        ,exts: 'csv|xls'
+        ,auto: false
+        ,bindAction: '#upload'
+        ,done: function(res, index, upload){
+        //上传完毕回调
+            console.log(res);
+            if (res.code) {
+                layer.msg(res.msg);
+                setTimeout("window.location.href= \"{% url 'cmdb:HostList' %}\"", 2000);
+            } else {
+                layer.alert(res.msg);
+            }
+        }
+        ,error: function(){
+        //请求异常回调
+            layer.msg('fail');
+        }
+    });
+
+</script>
+        
+{% endblock script %}
+    
+

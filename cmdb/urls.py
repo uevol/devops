@@ -38,4 +38,6 @@ urlpatterns = [
     url(r'^host/zabbix_refresh/$', views.zabbix_refresh, name='zabbix_refresh'),
     url(r'^host/add/$', views.HostAddView, name='HostAdd'),
     url(r'^host/patchUpdate/$', views.HostPatchUpdateView, name='HostPatchUpdate'),
+    url(r'^host/export/$', views.HostExportView, name='HostExport'),
+    url(r'^host/import/$', views.HostImportView, name='HostImport'),
 ]

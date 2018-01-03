@@ -17,12 +17,19 @@
 
 <button class="layui-btn" id="show_form">高级搜索</button>
 <a href="{% url 'cmdb:HostAdd' %}"><button class="layui-btn">添加主机</button></a>
-<button class="layui-btn layui-btn-disabled" id='patch_edit' onclick="patch_edit()">批量编辑</button>
+<button class="layui-btn layui-btn-disabled dis_or_able" id='patch_edit' onclick="patch_edit()">批量编辑</button>
 <a href="{% url 'cmdb:setTable' %}">
     <button class="layui-btn layui-btn-primary hover" style="float:right; padding: 0px 7px;" id="setting"><i class="layui-icon">&#xe614;</i></button>
 </a>
+<a href="{% url 'cmdb:HostImport' %}">
+    <button class="layui-btn layui-btn-primary" id="import">导入</button>
+</a>
+<form action="{% url 'cmdb:HostExport' %}" method="post" id="export_hosts" style="display: inline;">{% csrf_token %}
+    <input type="text" name="ids" id="ids" hidden>
+    <button type="button" class="layui-btn layui-btn-primary layui-btn-disabled dis_or_able" onclick="export_hosts()" id="export">导出</button>  
+</form>
 <hr>
-<form class="layui-form" action='' method="" style="display: none" id="search_form">  
+<form class="layui-form" action='' method="" style="display: none" id="search_form">
     <div class="layui-row">
         {% for item in items %}
             {% if item.optional_value %}
@@ -95,9 +102,9 @@
         //console.log(obj)
         var checkStatus = table.checkStatus('idTest'); //test即为基础参数id对应的值
         if (checkStatus.data.length > 0){
-            $("#patch_edit").removeClass("layui-btn-disabled");
+            $(".dis_or_able").removeClass("layui-btn-disabled");
         } else {
-            $("#patch_edit").addClass("layui-btn-disabled");
+            $(".dis_or_able").addClass("layui-btn-disabled");
         }
         //console.log(checkStatus.data) //获取选中行的数据
         //console.log(checkStatus.data.length) //获取选中行数量，可作为是否有选中行的条件
@@ -157,7 +164,19 @@
        tipsi = layer.tips('列表设置',this,{time:0});
      },function(){
           layer.close(tipsi);
-     });
+    });
+
+    $("#import").hover(function(){
+       tipsi = layer.tips('请先导出一份作为模板,按模板填写信息后导入；注意，导出模板时：1. 请务必包含服务器ID字段，字段可通过左侧设置按钮设置；2.导出后请务必不要更改表头',this,{time:0});
+     },function(){
+          layer.close(tipsi);
+    });
+
+    $("#export").hover(function(){
+       tipsi = layer.tips('可通过左侧设置按钮设置导出的字段，格式是csv，可通过excel打开。',this,{time:0});
+     },function(){
+          layer.close(tipsi);
+    });
 
     function patch_edit() {
         layer.open({
@@ -187,6 +206,17 @@
                 window.location.reload();
             }
         });
+    }
+
+    function export_hosts() {
+        var hosts = [];
+        var checkStatus = table.checkStatus('idTest');
+        for (x in checkStatus.data) {
+            hosts.push(checkStatus.data[x].server_id);
+        }
+        //console.log(hosts);
+        $("input[name='ids']").val(hosts);
+        $("#export_hosts").submit();
     }
 
     $('#show_form').click(function(){

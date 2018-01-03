@@ -72,7 +72,9 @@ perms_list = [
                 {'name': '上传文件', 'code': 'upload_file'},
                 {'name': '删除文件', 'code': 'delete_file'},
                 {'name': '执行脚本', 'code': 'run_script'},
-                {'name': '执行模块', 'code': 'run_state'}
+                {'name': '执行模块', 'code': 'run_state'},
+                {'name': '添加定时任务', 'code': 'c_cron'},
+                {'name': '删除定时任务', 'code': 'd_cron'}
             ]
     }
 ]

@@ -268,6 +268,7 @@ def CronListAPIView(request):
     res = {'code': 0, 'msg': '', 'count': count, 'data': data}
     return JsonResponse(res)
 
+@permission_check(['c_cron'])
 def CronAddView(request):
     if request.method == 'POST':
         cron_string = request.POST.get('cron_string', '')
@@ -295,6 +296,7 @@ def CronAddView(request):
         return JsonResponse(res)
     return render(request,'cron/cron_add.html',locals())
 
+@permission_check(['d_cron'])
 def CronDeleteView(request,job_id):
     try:
         scheduler.cancel(job_id)
