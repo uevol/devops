@@ -99,7 +99,7 @@ ENV/
 
 db.sqlite3
 
-#settings.py
+settings.py
 collectedstatic
 nohup.out
 *.log.*
