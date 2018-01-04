@@ -2,8 +2,6 @@
 
 [devops](http://180.173.34.78:8007/) a plateform for cmdb, saltstack, zabbix and systemlog
 
-License: MIT
-
 #### 已完成模块
 
 >一、 账户管理
@@ -65,7 +63,7 @@ License: MIT
 #### 阅读文档
 
 
-部署及配置请[阅读文档](https://github.com/uevol/devops/tree/master/docs)
+    部署及配置请[阅读文档](https://github.com/uevol/devops/tree/master/docs)
 
 #### License
 
@@ -83,17 +81,10 @@ furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
 
 #### Others
 
 Author : 
-1. uevol@outlook.com 
+    1. uevol@outlook.com 
 
-2. wei.yang@jinmuinfo.com
+    2. wei.yang@jinmuinfo.com
