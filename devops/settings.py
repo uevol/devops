@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '=2ke1d#crqio_ic35k$3y0af)70@n^y=rv^8rl&t-^_+y92m^f'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -80,14 +80,12 @@ WSGI_APPLICATION = 'devops.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        # 'ENGINE': 'django.db.backends.mysql',  
-        # 'NAME': 'devops',  
-        # 'USER': 'devops',  
-        # 'PASSWORD': 'devops',  
-        # 'HOST': 'mysql',
-        # 'PORT': '3306',
+        'ENGINE': 'django.db.backends.mysql',  
+        'NAME': 'devops',  
+        'USER': 'devops',  
+        'PASSWORD': 'devops',  
+        'HOST': '172.16.171.155',
+        'PORT': '3306',
     }
 }
 
@@ -111,7 +109,7 @@ from pyzabbix import ZabbixAPI
 ZABBIX_SERVER, ZABBIX_PORT, ZABBIX_PATH, ZABBIX_USER, ZABBIX_PASS = '127.0.0.1', 80, "/zabbix", "Admin", "zabbix"
 
 # config salt master system
-SALTMASTER_IP, SALTMASTER_PORT, SALTMASTER_USER, SALTMASTER_PASSWD = "192.168.3.167", '22', 'root', 'R00t@123'
+SALTMASTER_IP, SALTMASTER_PORT, SALTMASTER_USER, SALTMASTER_PASSWD = "172.16.171.155", '22', 'root', 'admin@123'
 # config salt_api
 SALT_IP, SALT_PORT, SALT_USER, SALT_PASSWD = '127.0.0.1', '8080', 'salt_api', 'salt_api'
 
@@ -216,6 +214,11 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
+STATIC_ROOT = os.path.join(BASE_DIR, 'collectedstatic')
+
+# upload folder
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR,'media')
 
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/'
