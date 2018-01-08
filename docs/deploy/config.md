@@ -152,7 +152,6 @@ net:
   bindIp: devops # 默认是 127.0.0.1
       
 # 新增 mongodb.service文件
-```
 vi /lib/systemd/system/mongodb.service
 
 [Unit]  
@@ -169,25 +168,19 @@ PrivateTmp=true
     
 [Install]  
 WantedBy=multi-user.target 
-``` 
 
 # 设置权限
-```
 chmod 644 /lib/systemd/system/mongodb.service
-```
 
 *启动关闭服务，设置开机启动*
-```
 # 启动服务  
 systemctl start mongodb.service    
 # 关闭服务    
 systemctl stop mongodb.service    
 # 开机启动    
 systemctl enable mongodb.service 
-```
 
 *查看数据库是否启动*
-```
 [root@localhost ~]# netstat -nlapt | grep 27017
 tcp        0      0 127.0.0.1:27017         0.0.0.0:*               LISTEN      9885/mongod
 ```
@@ -428,8 +421,8 @@ http://172.16.171.155:9000
 
 #### salt-event(通过api解析salt event)、rq队列及rq_scheduler需单独启动
 ###### 1. 配置salt-event
-# 新增 mongodb.service文件
 ```
+# 新增 mongodb.service文件
 vi /usr/lib/systemd/system/salt-event.service
 
 [Unit]
@@ -445,33 +438,26 @@ StandardOutput=syslog
 StandardError=inherit
 
 [Install]
-WantedBy=multi-user.target
-``` 
+WantedBy=multi-user.target 
 
 # 设置权限
-```
 chmod 644 /usr/lib/systemd/system/salt-event.service
-```
 
-*启动关闭服务，设置开机启动*
-```
 # 启动服务  
 systemctl start salt-event.service    
 # 关闭服务    
 systemctl stop salt-event.service    
 # 开机启动    
 systemctl enable salt-event.service 
-```
 
-*查看服务是否启动*
-```
+# 查看服务是否启动
 [root@devops ~]# ps aux | grep forward_to_devops | grep -v grep
 root       5699  0.0  0.6 312112 23736 ?        S    15:19   0:00 /usr/bin/python /opt/devops/scripts/monitor_salt_event/forward_to_devops.py
 ```
 
 ###### 2. 配置rq队列
-# 新增 rqworker.service文件
 ```
+# 新增 rqworker.service文件
 vi /usr/lib/systemd/system/rqworker.service
 
 [Unit]
@@ -488,32 +474,25 @@ StandardError=inherit
 
 [Install]
 WantedBy=multi-user.target
-``` 
 
 # 设置权限
-```
 chmod 644 /usr/lib/systemd/system/rqworker.service
-```
 
-*启动关闭服务，设置开机启动*
-```
 # 启动服务  
 systemctl start rqworker.service    
 # 关闭服务    
 systemctl stop rqworker.service    
 # 开机启动    
 systemctl enable rqworker.service 
-```
 
-*查看服务是否启动*
-```
+查看服务是否启动
 [root@devops ~]# ps aux | grep rqworker | grep -v grep
 root       9610  0.0  0.3 216808 13720 ?        S    16:13   0:00 /usr/bin/python /usr/bin/rqworker high default low
 ```
 
 ###### 3. 配置rq_scheduler服务
-# 新增 rqscheduler.service文件
 ```
+# 新增 rqscheduler.service文件
 vi /usr/lib/systemd/system/rqscheduler.service
 
 [Unit]
@@ -530,25 +509,18 @@ StandardError=inherit
 
 [Install]
 WantedBy=multi-user.target
-``` 
 
 # 设置权限
-```
 chmod 644 /usr/lib/systemd/system/rqscheduler.service
-```
 
-*启动关闭服务，设置开机启动*
-```
 # 启动服务  
 systemctl start rqscheduler.service   
 # 关闭服务    
 systemctl stop rqscheduler.service  
 # 开机启动    
 systemctl enable rqscheduler.service 
-```
 
-*查看服务是否启动*
-```
+查看服务是否启动
 [root@devops ~]# systemctl status rqscheduler
 ● rqscheduler.service - rqscheduler Service
    Loaded: loaded (/usr/lib/systemd/system/rqscheduler.service; disabled; vendor preset: disabled)
