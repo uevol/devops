@@ -536,7 +536,3 @@ Jan 08 16:22:50 devops systemd[1]: Started rqscheduler Service.
 [root@devops ~]# ps aux | grep rqscheduler | grep -v grep
 root      10209  0.1  0.3 213332 12920 ?        S    16:22   0:00 /usr/bin/python /usr/bin/rqscheduler
 ```
-
-
-
-
