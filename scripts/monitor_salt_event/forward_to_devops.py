@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 #coding=utf-8
 '''
 author: wei.yang@jinmuinfo.com
@@ -28,7 +28,7 @@ except ImportError:
     # the urllib.request.
     import urllib.request as urllib2
 
-def post_data_to_devops(data, url="http://192.168.3.167:8000/cmdb/host/createOrUpdate/"):
+def post_data_to_devops(data, url="http://devops:9000/cmdb/host/createOrUpdate/"):
     ''' post data to devops '''
     data = json.dumps(data)
     if isinstance(data, bytes):

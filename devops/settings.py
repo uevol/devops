@@ -84,7 +84,7 @@ DATABASES = {
         'NAME': 'devops',  
         'USER': 'devops',  
         'PASSWORD': 'devops',  
-        'HOST': '172.16.171.155',
+        'HOST': 'devops',
         'PORT': '3306',
     }
 }
@@ -97,7 +97,7 @@ try:
 except ImportError:
     # For Python 3
     from urllib.parse import quote_plus
-MONGO_HOST, MONGO_PORT, MONGO_USER, MONGO_PASS = '127.0.0.1', 27017, '', ''
+MONGO_HOST, MONGO_PORT, MONGO_USER, MONGO_PASS = 'devops', 27017, '', ''
 if MONGO_USER and MONGO_PASS:
    MONGO_USER, MONGO_PASS = quote_plus(MONGO_USER), quote_plus(MONGO_PASS)
    mongo = MongoClient('mongodb://%s:%s@%s:%s' % (MONGO_HOST, MONGO_PORT, MONGO_USER, MONGO_PASS))
@@ -106,12 +106,12 @@ else:
 
 # config zabbix
 from pyzabbix import ZabbixAPI
-ZABBIX_SERVER, ZABBIX_PORT, ZABBIX_PATH, ZABBIX_USER, ZABBIX_PASS = '127.0.0.1', 80, "/zabbix", "Admin", "zabbix"
+ZABBIX_SERVER, ZABBIX_PORT, ZABBIX_PATH, ZABBIX_USER, ZABBIX_PASS = 'devops', 80, "/zabbix", "Admin", "zabbix"
 
 # config salt master system
-SALTMASTER_IP, SALTMASTER_PORT, SALTMASTER_USER, SALTMASTER_PASSWD = "172.16.171.155", '22', 'root', 'admin@123'
+SALTMASTER_IP, SALTMASTER_PORT, SALTMASTER_USER, SALTMASTER_PASSWD = "devops", '22', 'root', 'admin@123'
 # config salt_api
-SALT_IP, SALT_PORT, SALT_USER, SALT_PASSWD = '127.0.0.1', '8080', 'salt_api', 'salt_api'
+SALT_IP, SALT_PORT, SALT_USER, SALT_PASSWD = 'devops', '8080', 'salt_api', 'salt_api'
 
 
 # config for rq_scheduler

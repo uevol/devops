@@ -8,6 +8,30 @@
     4. saltstack 2016-11
     5. mysql或者其他数据库(支持django)
 
+#### 操作系统设置
+
+###### 1. 关闭selinux(设置为disabled)
+```
+# 查看selinux状态
+sestatus
+
+# 设置selinux为disabled(重启后生效)
+vi /etc/selinux/config
+...
+
+SELINUX=disabled
+
+...
+
+# 如果不想重启，修改后执行以下命令
+setenforce 0
+```
+
+###### 2. 配置静态DNS解析
+```
+echo "IP devops" >> /etc/hosts # 将IP替换成实际IP地址, 请不要更改devops,后续IP都会被devops替换
+```
+
 #### 软件安装
 
 ###### 1. Git安装
@@ -96,11 +120,25 @@ curl -O https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-rhel70-3.6.1.tgz
 # 创建相关文件夹
 mkdir -p /root/mongo/{data,etc,log}
 
+# 创建mongodb用户
+useradd -d /opt/mongo mongod
+
+# 设置权限
+chown -R mongod:mongod /opt/mongo
+
 # 解压源码
-tar xvf mongodb-linux-x86_64-rhel70-3.6.1.tgz -C /root/mongo
+tar xvf mongodb-linux-x86_64-rhel70-3.6.1.tgz -C /opt/mongo
+mv /opt/mongo/mongodb-linux-x86_64-rhel70-3.6.1/* /opt/mongo
+rm -rf /opt/mongo/mongodb-linux-x86_64-rhel70-3.6.1
+
+# 添加mongo bin目录到系统PATH变量
+vi /etc/profile
+
+export MONGO_HOME=/opt/mongo
+PATH=$PATH:$MONGO_HOME/bin
 
 # 新建配置文件
-vi /root/mongo/etc/mongod.conf
+vi /opt/mongo/etc/mongod.conf
 
 systemLog:
   destination: file
@@ -108,19 +146,44 @@ systemLog:
   logAppend: true
 storage:
   dbPath: /root/mongo/data
+processManagment:
+  fork: true
 net:
-  bindIp: 127.0.0.1
+  bindIp: devops # 默认是 127.0.0.1
       
-# 配置启动文件
-vi /root/mongo/start.sh
+# 新增 mongodb.service文件
+```
+vi /lib/systemd/system/mongodb.service
 
-#!/bin/bash
-/root/mongo/mongodb-linux-x86_64-rhel70-3.6.1/bin/mongod -f /root/mongo/etc/mongod.conf --fork --logpath /root/mongo/log/mongo.log
+[Unit]  
+  
+Description=mongodb   
+After=network.target remote-fs.target nss-lookup.target  
+  
+[Service]  
+Type=forking  
+ExecStart=/opt/mongo/bin/mongod --config /opt/mongo/etc/mongod.conf  
+ExecReload=/bin/kill -s HUP $MAINPID  
+ExecStop=/opt/mongo/bin/mongod --shutdown --config /opt/mongo/etc/mongod.conf  
+PrivateTmp=true  
+    
+[Install]  
+WantedBy=multi-user.target 
+``` 
+
+# 设置权限
+```
+chmod 644 /lib/systemd/system/mongodb.service
 ```
 
-*启动数据库*
+*启动关闭服务，设置开机启动*
 ```
-sh /root/mongo/start.sh
+# 启动服务  
+systemctl start mongodb.service    
+# 关闭服务    
+systemctl stop mongodb.service    
+# 开机启动    
+systemctl enable mongodb.service 
 ```
 
 *查看数据库是否启动*
@@ -203,19 +266,19 @@ DATABASES = {
         'NAME': 'devops',  
         'USER': 'devops',  
         'PASSWORD': 'devops',  
-        'HOST': '172.16.171.155',
+        'HOST': 'devops',
         'PORT': '3306',
     }
 }
 
 # 配置mongo数据库
-MONGO_HOST, MONGO_PORT, MONGO_USER, MONGO_PASS = '127.0.0.1', 27017, '', ''
+MONGO_HOST, MONGO_PORT, MONGO_USER, MONGO_PASS = 'devops', 27017, '', ''
 
 # 配置zabbix API用户和密码
-ZABBIX_SERVER, ZABBIX_PORT, ZABBIX_PATH, ZABBIX_USER, ZABBIX_PASS = '127.0.0.1', 80, "/zabbix", "Admin", "zabbix"
+ZABBIX_SERVER, ZABBIX_PORT, ZABBIX_PATH, ZABBIX_USER, ZABBIX_PASS = 'devops', 80, "/zabbix", "Admin", "zabbix"
 
 # 配置salt api
-SALT_IP, SALT_PORT, SALT_USER, SALT_PASSWD = '127.0.0.1', '8080', 'salt_api', 'salt_api'
+SALT_IP, SALT_PORT, SALT_USER, SALT_PASSWD = 'devops', '8080', 'salt_api', 'salt_api'
 
 # 配置rq队列
 RQ_QUEUES = {
@@ -299,7 +362,6 @@ vi /etc/httpd/conf.d/devops.conf # 复制粘贴如下内容并修改
 # 根据实际情况修改端口
 Listen 9000
 <VirtualHost *:9000>
-
 LoadModule  wsgi_module modules/mod_wsgi.so
 
 # 根据实际情况修改路径(/path/to/devops)
@@ -307,7 +369,7 @@ WSGIScriptAlias / /opt/devops/wsgi/django.wsgi
 Alias /static/ /opt/devops/collectedstatic/
 
 # 需修改成实际ip地址
-ServerName 172.16.171.155
+ServerName devops
 #ServerAlias www.example.com
 
 <Directory /opt/devops/collectedstatic/>
@@ -330,6 +392,14 @@ LogLevel info
 cd /opt/devops
 chmod -R 644 devops
 find devops -type d | xargs chmod 755
+
+# 设置logs文件夹的所有者
+cd /opt/devops
+chown -R apache:apache logs
+
+# 设置media文件夹的所有者
+cd /opt/devops
+chown -R apache:apache media
 ```
 
 ###### 9. 初始化数据库
@@ -356,10 +426,144 @@ http://172.16.171.155:9000
 ```
 
 
+#### salt-event(通过api解析salt event)、rq队列及rq_scheduler需单独启动
+###### 1. 配置salt-event
+# 新增 mongodb.service文件
+```
+vi /usr/lib/systemd/system/salt-event.service
 
+[Unit]
+Description=salt-event Service
+After=salt-api.service
 
+[Service]
+Type=forking
+ExecStart=/bin/sh -c 'nohup /usr/bin/python /opt/devops/scripts/monitor_salt_event/forward_to_devops.py >/dev/null  2>&1 &'
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+StandardOutput=syslog
+StandardError=inherit
 
+[Install]
+WantedBy=multi-user.target
+``` 
 
+# 设置权限
+```
+chmod 644 /usr/lib/systemd/system/salt-event.service
+```
+
+*启动关闭服务，设置开机启动*
+```
+# 启动服务  
+systemctl start salt-event.service    
+# 关闭服务    
+systemctl stop salt-event.service    
+# 开机启动    
+systemctl enable salt-event.service 
+```
+
+*查看服务是否启动*
+```
+[root@devops ~]# ps aux | grep forward_to_devops | grep -v grep
+root       5699  0.0  0.6 312112 23736 ?        S    15:19   0:00 /usr/bin/python /opt/devops/scripts/monitor_salt_event/forward_to_devops.py
+```
+
+###### 2. 配置rq队列
+# 新增 rqworker.service文件
+```
+vi /usr/lib/systemd/system/rqworker.service
+
+[Unit]
+Description=rqworker Service
+After=redis.service
+
+[Service]
+Type=forking
+ExecStart=/bin/sh -c 'nohup /usr/bin/rqworker high default low >/dev/null  2>&1 &'
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+StandardOutput=syslog
+StandardError=inherit
+
+[Install]
+WantedBy=multi-user.target
+``` 
+
+# 设置权限
+```
+chmod 644 /usr/lib/systemd/system/rqworker.service
+```
+
+*启动关闭服务，设置开机启动*
+```
+# 启动服务  
+systemctl start rqworker.service    
+# 关闭服务    
+systemctl stop rqworker.service    
+# 开机启动    
+systemctl enable rqworker.service 
+```
+
+*查看服务是否启动*
+```
+[root@devops ~]# ps aux | grep rqworker | grep -v grep
+root       9610  0.0  0.3 216808 13720 ?        S    16:13   0:00 /usr/bin/python /usr/bin/rqworker high default low
+```
+
+###### 3. 配置rq_scheduler服务
+# 新增 rqscheduler.service文件
+```
+vi /usr/lib/systemd/system/rqscheduler.service
+
+[Unit]
+Description=rqscheduler Service
+After=rqworker.service
+
+[Service]
+Type=forking
+ExecStart=/bin/sh -c 'nohup /usr/bin/rqscheduler >/dev/null  2>&1 &'
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+StandardOutput=syslog
+StandardError=inherit
+
+[Install]
+WantedBy=multi-user.target
+``` 
+
+# 设置权限
+```
+chmod 644 /usr/lib/systemd/system/rqscheduler.service
+```
+
+*启动关闭服务，设置开机启动*
+```
+# 启动服务  
+systemctl start rqscheduler.service   
+# 关闭服务    
+systemctl stop rqscheduler.service  
+# 开机启动    
+systemctl enable rqscheduler.service 
+```
+
+*查看服务是否启动*
+```
+[root@devops ~]# systemctl status rqscheduler
+● rqscheduler.service - rqscheduler Service
+   Loaded: loaded (/usr/lib/systemd/system/rqscheduler.service; disabled; vendor preset: disabled)
+   Active: active (running) since Mon 2018-01-08 16:22:50 CST; 2s ago
+  Process: 10208 ExecStart=/bin/sh -c nohup /usr/bin/rqscheduler >/dev/null  2>&1 & (code=exited, status=0/SUCCESS)
+ Main PID: 10209 (rqscheduler)
+   CGroup: /system.slice/rqscheduler.service
+           └─10209 /usr/bin/python /usr/bin/rqscheduler
+
+Jan 08 16:22:50 devops systemd[1]: Starting rqscheduler Service...
+Jan 08 16:22:50 devops systemd[1]: Started rqscheduler Service.
+[root@devops ~]#
+[root@devops ~]# ps aux | grep rqscheduler | grep -v grep
+root      10209  0.1  0.3 213332 12920 ?        S    16:22   0:00 /usr/bin/python /usr/bin/rqscheduler
+```
 
 
 

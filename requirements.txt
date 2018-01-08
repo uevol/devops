@@ -36,6 +36,7 @@ Markdown==2.6.9
 MarkupSafe==1.0
 more-itertools==4.0.1
 msgpack-python==0.4.6
+MySQL-python==1.2.5
 paramiko==2.4.0
 perf==0.1
 portend==2.2
