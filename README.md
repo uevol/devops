@@ -60,9 +60,11 @@
 
 ![](preview/user_group.png)
 
-#### 阅读文档
+#### 部署
 
-部署及配置请[阅读相关文档](https://github.com/uevol/devops/tree/master/docs)
+目前针对现有功能，已经封装成一个虚拟机(vmware平台)，如要体验，请[下载](http://)虚拟机，并参考[配置文档]进行配置。
+
+部署及配置详细文档请[阅读相关文档](https://github.com/uevol/devops/tree/master/docs)
 
 #### License
 
