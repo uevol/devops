@@ -18,42 +18,43 @@ except Exception as e:
 	print "zabbix api error: %s"% (str(e))
 
 def get_hostid_by_ip(ip):
+	data, error = '', ''
 	try:
 		data = zapi.hostinterface.get(output=['hostid'],filter={'ip':ip})
 		if data:
 			data = data[0]['hostid']
 	except Exception as e:
-		data = str(e)
-
-	return data
+		error = str(e)
+	return data, error
 
 def get_itemids_by_hostid(hostid,key):
-	ret = {}
+	ret, error = {}, ''
 	try:
 		data = zapi.item.get(output=['itemid','key_'],hostids=hostid,search={"key_": key})
 		if data:
 			for ele in data:
 				ret[ele['key_']] = ele['itemid']
 	except Exception as e:
-		ret = str(e)
+		error = str(e)
 
-	return ret
+	return ret, error
 
 
 def get_graph_by_ip(ip):
-	ret = {}
+	ret, error = {}, ''
 	try:
-		hostid = get_hostid_by_ip(ip)
-		graphids = zapi.graph.get(output=["graphid",'name'],hostids=hostid)
-		if graphids:
-			for ele in graphids:
-				ret[ele['name']] = ele['graphid']
+		hostid, error = get_hostid_by_ip(ip)
+		if not error:
+			graphids = zapi.graph.get(output=["graphid",'name'],hostids=hostid)
+			if graphids:
+				for ele in graphids:
+					ret[ele['name']] = ele['graphid']
 	except Exception as e:
-		ret = str(e)
-	return ret
+		error = str(e)
+	return ret, error
 
 def get_item_by_graphid(graphid):
-	ret = {}
+	ret, error = {}, ''
 	try:
 		itemids = zapi.graphitem.get(output=['itemid'],graphids=graphid)
 		if itemids:
@@ -65,11 +66,12 @@ def get_item_by_graphid(graphid):
 				for ele in items:
 					ret[ele['key_']] = ele['itemid']
 	except Exception as e:
-		ret = str(e)
-	return ret
+		error = str(e)
+	return ret, error
 
 def get_history_data(itemids=[],time_from=time.time() - 60 * 60 * 1,time_till=time.time()):
 	try:
+		history, error = {}, ''
 		# Query item's history (integer) data
 		history = zapi.history.get(itemids=itemids,
 								   time_from=time_from,
@@ -90,6 +92,6 @@ def get_history_data(itemids=[],time_from=time.time() - 60 * 60 * 1,time_till=ti
 									   history=0
 									   )
 	except Exception as e:
-		history = str(e)
+		error = str(e)
 	
-	return history
+	return history, error

@@ -245,21 +245,28 @@ def zabbix(request,ip=''):
         interval = int(request.POST.get('interval','')) if request.POST.get('interval','') else 60 * 60 * 1
         dt_from = dt_till - interval
     graph_selected = request.POST.get('graph','') if request.POST.get('graph','') else 'CPU load'
-    graphs = get_graph_by_ip(ip)
-    if graphs:
+    graphs, error = get_graph_by_ip(ip)
+    if not error:
         graphid = graphs[graph_selected]
-        items = get_item_by_graphid(graphid)
-        if items:
+        items, error1 = get_item_by_graphid(graphid)
+        if not error1:
             legend,data = [],[]
             for key,itemid in items.items():
                 legend.append(key)
-                tmp = get_history_data(itemid,time_from=dt_from,time_till=dt_till)
-                value,name = [],key
-                for x in tmp:
-                    date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(x['clock'])))
-                    value.append([date,x['value']])
-                data.append({'value':value,'name':key})
+                tmp, error2 = get_history_data(itemid,time_from=dt_from,time_till=dt_till)
+                if not error2:
+                    value,name = [],key
+                    for x in tmp:
+                        date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(x['clock'])))
+                        value.append([date,x['value']])
+                    data.append({'value':value,'name':key})
+                else:
+                    error_msg = error
             context = json.dumps({"legend":legend,"data":data})
+        else:
+            error_msg = error
+    else:
+        error_msg = error
     dt_from=time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(dt_from))
     dt_till=time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(dt_till))
     return render(request,'host/zabbix.html',locals())
@@ -270,18 +277,22 @@ def zabbix_refresh(request):
     interval = request.POST.get('interval','')
     dt_from = dt_till - int(interval)
     graph_selected = request.POST.get('graph','') if request.POST.get('graph','') else 'CPU load'
-    graphs = get_graph_by_ip(ip)
-    if graphs:
+    graphs, error = get_graph_by_ip(ip)
+    if not error:
         graphid = graphs[graph_selected]
-        items = get_item_by_graphid(graphid)
-        if items:
+        items, error1 = get_item_by_graphid(graphid)
+        if not error1:
             data = []
             for key, itemid in items.items():
-                tmp = get_history_data(itemid,time_from=dt_from,time_till=dt_till)
+                tmp, error2 = get_history_data(itemid,time_from=dt_from,time_till=dt_till)
                 for x in tmp:
                     date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(x['clock'])))
                     data.append([date,x['value']])
             context = json.dumps({"data":data})
+        else:
+            error_msg = error 
+    else:
+        error_msg = error
     dt_from=time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(dt_from))
     dt_till=time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(dt_till))
     return HttpResponse(context)

@@ -393,6 +393,11 @@ chown -R apache:apache logs
 # 设置media文件夹的所有者
 cd /opt/devops
 chown -R apache:apache media
+
+# 以下命令服务于saltstack的文件操作
+ln -s /opt/devops/media/files /srv/salt/files
+ln -s /opt/devops/media/files /srv/salt/scripts
+ln -s /opt/devops/media/files /srv/salt/states
 ```
 
 ###### 9. 初始化数据库
@@ -419,7 +424,7 @@ http://172.16.171.155:9000
 ```
 
 
-#### salt-event(通过api解析salt event)、rq队列及rq_scheduler需单独启动
+#### salt-event(通过api解析salt event)、webssh服务、rq队列及rq_scheduler需单独启动
 ###### 1. 配置salt-event
 ```
 # 新增 mongodb.service文件
@@ -431,7 +436,7 @@ After=salt-api.service
 
 [Service]
 Type=forking
-ExecStart=/bin/sh -c 'nohup /usr/bin/python /opt/devops/scripts/monitor_salt_event/forward_to_devops.py >/dev/null  2>&1 &'
+ExecStart=/bin/sh -c '/usr/bin/python /opt/devops/scripts/monitor_salt_event/forward_to_devops.py > /var/log/devops/salt-event/`date +%Y%m%d`.log 2>&1 &'
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure
 StandardOutput=syslog
@@ -466,7 +471,7 @@ After=redis.service
 
 [Service]
 Type=forking
-ExecStart=/bin/sh -c 'nohup /usr/bin/rqworker high default low >/dev/null  2>&1 &'
+ExecStart=/bin/sh -c '/usr/bin/rqworker high default low > /var/log/devops/rqworker/`date +%Y%m%d`.log  2>&1 &'
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure
 StandardOutput=syslog
@@ -501,7 +506,7 @@ After=rqworker.service
 
 [Service]
 Type=forking
-ExecStart=/bin/sh -c 'nohup /usr/bin/rqscheduler >/dev/null  2>&1 &'
+ExecStart=/bin/sh -c '/usr/bin/rqscheduler >/var/log/devops/rqscheduler/`date +%Y%m%d`.log  2>&1 &'
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure
 StandardOutput=syslog
@@ -535,4 +540,48 @@ Jan 08 16:22:50 devops systemd[1]: Started rqscheduler Service.
 [root@devops ~]#
 [root@devops ~]# ps aux | grep rqscheduler | grep -v grep
 root      10209  0.1  0.3 213332 12920 ?        S    16:22   0:00 /usr/bin/python /usr/bin/rqscheduler
+```
+
+###### 4. 配置webssh服务
+```
+# 新增 webssh.service文件
+vi /usr/lib/systemd/system/webssh.service
+
+[Unit]
+Description=webssh Service
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/bin/sh -c '/usr/bin/python /opt/devops/webssh/main.py > /var/log/devops/webssh/`date +%Y%m%d`.log 2>&1 &'
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+StandardOutput=syslog
+StandardError=inherit
+
+[Install]
+WantedBy=multi-user.target
+
+# 设置权限
+chmod 644 /usr/lib/systemd/system/webssh.service
+
+# 启动服务  
+systemctl start webssh.service   
+# 关闭服务    
+systemctl stop webssh.service
+# 开机启动    
+systemctl enable webssh.service
+
+查看服务是否启动
+[root@devops ~]# systemctl status webssh.service
+● webssh.service - webssh Service
+   Loaded: loaded (/usr/lib/systemd/system/webssh.service; disabled; vendor preset: disabled)
+   Active: active (running) since Tue 2018-01-09 11:41:18 CST; 8s ago
+  Process: 13204 ExecStart=/bin/sh -c /usr/bin/python /opt/devops/webssh/main.py > /var/log/devops/webssh/`date +%Y%m%d`.log 2>&1 & (code=exited, status=0/SUCCESS)
+ Main PID: 13205 (python)
+   CGroup: /system.slice/webssh.service
+           └─13205 /usr/bin/python /opt/devops/webssh/main.py
+
+Jan 09 11:41:18 devops systemd[1]: Starting webssh Service...
+Jan 09 11:41:18 devops systemd[1]: Started webssh Service. 
 ```

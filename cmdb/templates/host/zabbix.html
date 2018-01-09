@@ -3,8 +3,11 @@
 
 
 {% block content %}
-<script src="{%static 'js/echarts.js' %}"></script>
-<div class="layui-col-xs12 layui-col-sm12 layui-col-md12">
+    {% if error_msg %}
+    <div style="color: red;">{{error_msg}}</div>
+    {% else %}
+    <script src="{%static 'js/echarts.js' %}"></script>
+    <div class="layui-col-xs12 layui-col-sm12 layui-col-md12">
         <form class="layui-form" method="post" action="{% url 'cmdb:zabbix' ip %}" id='zabbix'>{% csrf_token %}
             <div class="layui-col-xs6 layui-col-sm6 layui-col-md6">
                 <div class="layui-form-item">
@@ -42,7 +45,7 @@
     <br>
     <div id="main" style="height:300px;"></div>
     <div hidden="hidden" id='data'>{{context}}</div>
-
+    {% endif %}
 {% endblock content %}
 
 {% block script %}

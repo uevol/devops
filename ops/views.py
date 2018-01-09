@@ -14,6 +14,8 @@ from django.db.models import Q
 import collections
 from devops.decorators import permission_check
 from devops.settings import scheduler
+from devops.settings import MEDIA_ROOT
+import os
 # Create your views here.
 
 @permission_check(['run_cmd'])
@@ -132,15 +134,15 @@ def UploadFileVifew(request):
                 client = request.META['REMOTE_ADDR']
             if file_type == 'other':
                 myfile,updated = File.objects.update_or_create(code=file.name, name=file.name, defaults={'created_by':user})
-                res = upload_file(file, '/srv/salt/files')
+                res = upload_file(file, os.path.join(MEDIA_ROOT, 'files'))
             elif file_type == 'script':
                 myfile,updated = File.objects.update_or_create(code=file.name, name=file.name, \
                     file_type='script', defaults={'created_by':user})
-                res = upload_file(file, '/srv/salt/scripts')
+                res = upload_file(file, os.path.join(MEDIA_ROOT, 'scripts'))
             else:
                 myfile,updated = File.objects.update_or_create(code=file.name, name=file.name, \
                     file_type='state', defaults={'created_by':user})
-                res = upload_file(file, '/srv/salt/states')
+                res = upload_file(file, os.path.join(MEDIA_ROOT, 'states'))
             if res:
                 myfile.delete()
                 res = {'code': 0, 'msg': res}

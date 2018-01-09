@@ -8,6 +8,7 @@ function:
 Listening Salt Master Event System and parase the job return ,then post result to devops
 '''
 import json
+import datetime
 
 # set logger
 try:
@@ -113,6 +114,8 @@ try:
                         data = eachevent['data']
                     else:
                         continue
+                    log = '%s : %s : %s\n'%(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), eachevent['data']['id'], eachevent['data']['fun'])
+                    print log
                     post_data_to_devops(data)
                     # the following code is for debugging
                     # import pprint
@@ -121,6 +124,9 @@ try:
         except Exception as e:
             # loggin error
             logger.error(str(e))
+            log = '%s : %s\n'%(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(e))
+            print log
             continue
 except Exception as e:
-    raise e
+    log = '%s : %s\n'%(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(e))
+    print log

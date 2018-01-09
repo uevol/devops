@@ -39,7 +39,7 @@ Please visit the localhost:%s from the explorer~
 
 def main():
     init_config()
-    options.parse_config_file("webssh.conf")
+    options.parse_config_file(os.path.join(os.path.dirname(__file__), "webssh.conf"))
 
     http_server = tornado.httpserver.HTTPServer(Application())
     http_server.listen(options.port)
