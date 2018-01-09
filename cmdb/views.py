@@ -349,7 +349,7 @@ def HostDeleteView(request, server_id=''):
 def HostAddView(request):
     ftp = Service.objects.get(name='ftp')
     linux_script = "install-minion.sh"
-    win_script = "install-minion.vbs"
+    win_script = "windows/Salt-Minion-2016.11.7-x86-Setup.exe"
     if ftp.path:
         url = "http://%s:%s/%s/"%(ftp.host, ftp.port, ftp.path)
     else:

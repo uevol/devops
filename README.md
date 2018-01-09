@@ -62,8 +62,7 @@
 
 #### 阅读文档
 
-
-    部署及配置请[阅读文档](https://github.com/uevol/devops/tree/master/docs)
+部署及配置请[阅读相关文档](https://github.com/uevol/devops/tree/master/docs)
 
 #### License
 
@@ -87,3 +86,7 @@
     1. uevol@outlook.com 
 
     2. wei.yang@jinmuinfo.com
+
+#### Company
+
+    上海锦木信息技术有限公司
