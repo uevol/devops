@@ -8,12 +8,12 @@ rpm -ivh http://repo.zabbix.com/zabbix/3.0/rhel/7/x86_64/zabbix-release-3.0-1.el
 2 Installing Zabbix packages
 ### Install Zabbix packages. Example for Zabbix server and web frontend with mysql database
 ```
-yum install zabbix-server-mysql zabbix-web-mysql
+yum install zabbix-server-mysql zabbix-web-mysql -y
 ```
 
 ### installing Zabbix agent only
 ```
-yum install zabbix-agent
+yum install zabbix-agent -y 
 ```
 
 3 Creating initial database

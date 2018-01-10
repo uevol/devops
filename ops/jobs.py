@@ -22,16 +22,16 @@ def check_minion_status(arg, arg1, target, arg_list):
   try:
     salt = SaltAPI(SALT_IP,SALT_USER,SALT_PASSWD,port=SALT_PORT)
     ret = salt.minion_alive_check()
-    mongo.devops.host.update_many({'minion_status': 'error'}, {'minion_status': {'$set': 'ok'}})
+    mongo.devops.host.update_many({'minion_status': 'error'}, {'$set': {'minion_status': 'ok'}})
     if ret:
       for minion in ret:
         try:
-          mongo.devops.host.update_one({'minion_id': minion}, {'minion_status': {'$set': 'error'}})
+          mongo.devops.host.update({'minion_id': minion}, {'$set': {'minion_status': 'error'}})
         except Exception as e:
-          continue
-          # raise e
+          # continue
+          print str(e)
   except Exception as e:
-    print e
+    print str(e)
 
 def update_grains(arg, arg1, target, arg_list):
   '''
@@ -41,6 +41,6 @@ def update_grains(arg, arg1, target, arg_list):
     salt = SaltAPI(SALT_IP, SALT_USER, SALT_PASSWD, port=SALT_PORT)
     salt.run(client='local_async', fun="grains.items", target="*", arg_list=['--batch=10%'], expr_form='glob')
   except Exception as e:
-    pass
+    print str(e)
 
 
