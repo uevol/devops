@@ -55,7 +55,7 @@ python-dateutil==2.6.1
 pytz==2017.3
 pyudev==0.15
 pyxattr==0.5.1
-PyYAML==3.11
+PyYAML==5.4
 pyzabbix==0.7.4
 pyzmq==15.3.0
 redis==2.10.6
