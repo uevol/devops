@@ -44,7 +44,7 @@ pyasn1==0.4.2
 pycparser==2.18
 pycrypto==2.6.1
 pycurl==7.19.0
-Pygments==2.2.0
+Pygments==2.7.4
 pygobject==3.14.0
 pygpgme==0.3
 PyJWT==1.5.3
