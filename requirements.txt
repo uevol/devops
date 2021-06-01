@@ -70,6 +70,6 @@ tempora==1.10
 tornado==4.5.2
 uritemplate==3.0.0
 urlgrabber==3.10
-urllib3==1.22
+urllib3==1.26.5
 virtualenv==15.1.0
 yum-metadata-parser==1.1.4
