@@ -63,7 +63,7 @@ requests==2.18.4
 requirement.txt==0.2.0
 rq==0.9.2
 rq-scheduler==0.7.0
-salt==2016.11.8
+salt==3003.5
 singledispatch==3.4.0.3
 six==1.11.0
 tempora==1.10
